@@ -13,6 +13,7 @@ from src.mde_pipeline.combine_cbass_spass.run import run_combine_cbass_spass
 from src.mde_pipeline.cmb.run import run_smooth_cmb
 from src.mde_pipeline.regions.run import run_regions 
 from src.mde_pipeline.fitting.run import run_fit
+from src.mde_pipeline.fisher.run import run_fisher
 
 from src.mde_pipeline.utils.config import load_yaml
 from src.mde_pipeline.utils.paths import _ensure_parent, _default_fits_dir,_default_processed_h5,_default_regions_h5,_default_sims_h5,_default_combine_fits,_default_cmb_fits,_resolve_version_dir
@@ -188,6 +189,51 @@ def fit(
         dry_run=dry_run
     )
 
+
+
+@app.command()
+def fisher(
+    fitter_cfg: Path = typer.Option(Path("configs/fitting/fitter.yaml"), "--config", "-c"),
+    data: Path = typer.Option(Path("configs/fitting/data.yaml"), "--data", "-d"),
+    templates: Path = typer.Option(Path("configs/templates/templates.yaml"), "--templates", "-t"),
+    tag: str = typer.Option("v001"),
+    run_name: str = typer.Option("paper_fisher"),
+    regions_h5: Optional[Path] = typer.Option(None),
+    processed_h5: Optional[Path] = typer.Option(None),
+    out_dir: Optional[Path] = typer.Option(None),
+    region_id: Optional[List[str]] = typer.Option(None, "--region"),
+    overwrite: bool = typer.Option(False),
+    dry_run: bool = typer.Option(False),
+    # Derivative knobs
+    deriv_method: str = typer.Option("finite"),
+    stepsize: float = typer.Option(1e-3),
+    num_points: int = typer.Option(5),
+    extrapolation: str = typer.Option("ridders"),
+    levels: int = typer.Option(4),
+    n_workers: int = typer.Option(1),
+) -> None:
+    outdir = out_dir or _default_fits_dir(tag)
+    regions_path = regions_h5 or _default_regions_h5(tag)
+    processed_path = processed_h5 or _default_processed_h5(tag)
+
+    run_fisher(
+        fitter_yaml=fitter_cfg,
+        data_yaml=data,
+        templates_yaml=templates,
+        regions_h5=regions_path,
+        processed_h5=processed_path,
+        out_dir=outdir,
+        run_name=run_name,
+        region_ids=region_id,
+        overwrite=overwrite,
+        dry_run=dry_run,
+        deriv_method=deriv_method,
+        stepsize=stepsize,
+        num_points=num_points,
+        extrapolation=extrapolation,
+        levels=levels,
+        n_workers=n_workers,
+    )
 
 @app.command()
 def figures(

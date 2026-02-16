@@ -164,9 +164,6 @@ def run_fit(
             param_vector=pv
         )
 
-        import sys
-        sys.exit()
-
         if run_mcmc:
             result = run_emcee_region(
                 lnpost_obj=lnlike_obj,
