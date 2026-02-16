@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Callable, Dict, Optional
 
 from ..utils.logging import get_logger
 from ..utils.config import load_yaml
-from ..io import raw_maps_readers 
-from ..io.maps_io import MapIO, Map  
+from ..io import raw_maps_readers
+from ..io.maps_io import MapIO
 
 from .units import fix_pol_convention, unit_convert, dec_mask, subtract_cmb
 from .beams import smooth_maps
@@ -14,13 +14,26 @@ from ..qc.qc_plotting import qc_plot_map
 
 log = get_logger(__name__)
 
-OPS = {
+OPS: dict[str, Callable[..., Any]] = {
     "fix_pol_convention": fix_pol_convention,
-    "unit_convert": unit_convert, 
+    "unit_convert": unit_convert,
     "smooth_maps": smooth_maps,
-    "dec_mask":dec_mask,
-    "subtract_cmb":subtract_cmb()
+    "dec_mask": dec_mask,
 }
+
+OP_FACTORIES: dict[str, Callable[[], Callable[..., Any]]] = {
+    "subtract_cmb": subtract_cmb,
+}
+
+
+def _build_operations() -> dict[str, Callable[..., Any]]:
+    ops = dict(OPS)
+    for op_name, factory in OP_FACTORIES.items():
+        candidate = factory()
+        if not callable(candidate):
+            raise TypeError(f"Factory for op '{op_name}' did not return a callable")
+        ops[op_name] = candidate
+    return ops
 
 def run_preprocess(
     instruments_yaml: Path,
@@ -54,6 +67,8 @@ def run_preprocess(
 
     log.info("Preprocessing %d map(s) -> %s", len(map_ids), out_h5)
 
+    ops = _build_operations()
+
     for map_id in map_ids:
         meta = instruments_info[map_id]
         steps = preprocess_info.get(map_id, preprocess_info.get("_default", []))
@@ -78,19 +93,24 @@ def run_preprocess(
 
         # # --- apply preprocess ops (you’ll implement these) ---
         for step_info in steps:
-            op = step_info['op'] 
-            kwargs = {k:v for k,v in step_info.items() if k != 'op'}
-            OPS[op](reader.map, reader.beam_info, **kwargs) 
+            op = step_info["op"]
+            kwargs = {k: v for k, v in step_info.items() if k != "op"}
+
+            if op not in ops:
+                raise KeyError(f"[{map_id}] unknown preprocess op '{op}'")
+
+            log.debug("[%s] Running op=%s kwargs=%s", map_id, op, kwargs)
+            ops[op](reader.map, reader.beam_info, **kwargs)
 
         log.info("[%s] Writing to %s group=%s", map_id, out_h5, map_id)
         tag = str(out_h5.parent.name)
-        reader.map.stage = 'processed'
-        map_io.write_map(reader.map) 
+        reader.map.stage = "processed"
+        map_io.write_map(reader.map)
 
-        if False:
+        if preprocess_info.get("qc", {}).get("enabled", False):
             qc_plot_map(
                 reader.map,
-                preprocess_info.get("qc",{}),
+                preprocess_info.get("qc", {}),
                 out_dir=Path(f"products/qc/preprocess/{tag}") / map_id,
             )
 

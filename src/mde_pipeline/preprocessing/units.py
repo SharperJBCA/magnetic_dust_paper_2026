@@ -112,12 +112,12 @@ class subtract_cmb:
         self._cmb_cache = {} 
 
     def __call__(self, m : Map, beam_info,cmb_map): 
-        if not m.nside in self._cmb_cache:
-            I,Q,U = hp.read_map(cmb_map,field=[0,1,2])
-            I = hp.ud_grade(I, m.nside)
-            Q = hp.ud_grade(Q, m.nside)
-            U = hp.ud_grade(U, m.nside)
-            self._cmb_cache[m.nside] = {'I':I,'Q':Q,'U':U}
+        if m.nside not in self._cmb_cache:
+            cmb_i, cmb_q, cmb_u = hp.read_map(cmb_map, field=[0, 1, 2])
+            cmb_i = hp.ud_grade(cmb_i, m.nside)
+            cmb_q = hp.ud_grade(cmb_q, m.nside)
+            cmb_u = hp.ud_grade(cmb_u, m.nside)
+            self._cmb_cache[m.nside] = {'I': cmb_i, 'Q': cmb_q, 'U': cmb_u}
         cmb = self._cmb_cache[m.nside] 
 
         for stokes in ['I','Q','U']:
