@@ -1,0 +1,11 @@
+synchrotron:
+  template: "cbass_spass"
+  template_class: "TemplateBase"
+
+thermal_dust:
+  template: "planck353_pr3"
+  template_class: "TemplateBase"
+
+freefree:
+  template: "wham"
+  template_class: "TemplateBase"

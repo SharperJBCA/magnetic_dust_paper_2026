@@ -1,0 +1,528 @@
+litebird_LFT_L1-040:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L1-040_var_IQU_nside016.fits
+  freq_ghz: 40.0
+  fwhm_arcmin: 70.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L2-050:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L2-050_var_IQU_nside016.fits
+  freq_ghz: 50.0
+  fwhm_arcmin: 58.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L1-060:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L1-060_var_IQU_nside016.fits
+  freq_ghz: 60.0
+  fwhm_arcmin: 51.1
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L3-068:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L3-068_var_IQU_nside016.fits
+  freq_ghz: 68.0
+  fwhm_arcmin: 41.6
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L2-068:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L2-068_var_IQU_nside016.fits
+  freq_ghz: 68.0
+  fwhm_arcmin: 47.1
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L4-078:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L4-078_var_IQU_nside016.fits
+  freq_ghz: 78.0
+  fwhm_arcmin: 36.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L1-078:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L1-078_var_IQU_nside016.fits
+  freq_ghz: 78.0
+  fwhm_arcmin: 43.8
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L3-089:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L3-089_var_IQU_nside016.fits
+  freq_ghz: 89.0
+  fwhm_arcmin: 33.0
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L2-089:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L2-089_var_IQU_nside016.fits
+  freq_ghz: 89.0
+  fwhm_arcmin: 41.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L4-100:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L4-100_var_IQU_nside016.fits
+  freq_ghz: 100.0
+  fwhm_arcmin: 30.2
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L3-119:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L3-119_var_IQU_nside016.fits
+  freq_ghz: 119.0
+  fwhm_arcmin: 26.3
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L4-140:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L4-140_var_IQU_nside016.fits
+  freq_ghz: 140.0
+  fwhm_arcmin: 23.7
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M1-100:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M1-100_var_IQU_nside016.fits
+  freq_ghz: 100.0
+  fwhm_arcmin: 37.8
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M2-119:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M2-119_var_IQU_nside016.fits
+  freq_ghz: 119.0
+  fwhm_arcmin: 33.6
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M1-140:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M1-140_var_IQU_nside016.fits
+  freq_ghz: 140.0
+  fwhm_arcmin: 30.8
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M2-166:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M2-166_var_IQU_nside016.fits
+  freq_ghz: 166.0
+  fwhm_arcmin: 28.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M1-195:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M1-195_var_IQU_nside016.fits
+  freq_ghz: 195.0
+  fwhm_arcmin: 28.0
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H1-195:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H1-195_var_IQU_nside016.fits
+  freq_ghz: 195.0
+  fwhm_arcmin: 28.6
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H2-235:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H2-235_var_IQU_nside016.fits
+  freq_ghz: 235.0
+  fwhm_arcmin: 24.7
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H1-280:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H1-280_var_IQU_nside016.fits
+  freq_ghz: 280.0
+  fwhm_arcmin: 22.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H2-337:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H2-337_var_IQU_nside016.fits
+  freq_ghz: 337.0
+  fwhm_arcmin: 20.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H3-402:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H3-402_var_IQU_nside016.fits
+  freq_ghz: 402.0
+  fwhm_arcmin: 17.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+cbass:
+  filename: "data/cbass/cbass_DR1_G_ns1024_mn_dp_ss_dc.fits"
+  read_class: "CBASSMap"     # reader plugin
+  freq_ghz: 4.76
+  fwhm_arcmin: 60.0
+  unit: "K_RJ"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "IAU"         # Q/U sign/
+  bandpass: null       
+  calerr: 0.03       
+spass:
+  filename: ["data/spass/spass_dr1_1902_healpix_Tb.i.fits","data/spass/spass_dr1_1902_healpix_Tb.q.fits","data/spass/spass_dr1_1902_healpix_Tb.u.fits","data/spass/spass_dr1_1902_healpix_Tb.qu.sens.fits"]
+  read_class: "SPASSMap"     # reader plugin
+  freq_ghz: 2.3
+  fwhm_arcmin: 8.9
+  unit: "K_RJ"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "IAU"         # Q/U sign/
+  bandpass: null       
+  calerr: 0.03  
+cbass_spass:
+  filename: "products/combined/v001/combined_cbass_spass.fits"
+  read_class: "CBASSMap"     # reader plugin
+  freq_ghz: 4.76
+  fwhm_arcmin: 60.0
+  unit: "K_RJ"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "IAU"         # Q/U sign/
+  bandpass: null       
+  calerr: 0.03                
+wham:
+  filename: "data/WHAM/WHAM_1_256.fits"
+  read_class: "WHAMMap"
+  fwhm_arcmin: 60.0
+  unit: "R"
+  coord: "G"
+  stokes: ["I"]
+cmb_commander:
+  filename: "data/planck_pr3/COM_CMB_IQU-commander_2048_R3.00_full.fits"
+  read_class: "CosmoglobeCMBMap"     # reader plugin
+  fwhm_arcmin: 4.5
+  unit: "K_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign/
+  bandpass: null
+  beam_fits: "data/planck_pr3/COM_CMB_IQU-commander_2048_R3.00_full.fits"
+  calerr: 0.01         
+planck353_pr3:
+  filename: "data/planck_pr3/HFI_SkyMap_353-psb_2048_R3.01_full.fits"
+  read_class: "PlanckHFIPR3Map"     # reader plugin
+  freq_ghz: 353.0
+  fwhm_arcmin: 4.8
+  unit: "K_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign/
+  bandpass: null
+  beam_fits: "data/planck_pr3/BeamWf_HFI_R3.01/Wl_R3.01_fullsky_353x353.fits"
+  beam_column: "TT_2_TT"
+  calerr: 0.01         
+planck217_pr3:
+  filename: "data/planck_pr3/HFI_SkyMap_217_2048_R3.01_full.fits"
+  read_class: "PlanckHFIPR3Map"     # reader plugin
+  freq_ghz: 217.0
+  fwhm_arcmin: 5.0
+  unit: "K_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  beam_fits: "data/planck_pr3/BeamWf_HFI_R3.01/Wl_R3.01_fullsky_217x217.fits"
+  beam_column: "TT_2_TT"
+  bandpass: null       
+  calerr: 0.01         
+planck143_pr3:
+  filename: "data/planck_pr3/HFI_SkyMap_143_2048_R3.01_full.fits"
+  read_class: "PlanckHFIPR3Map"     # reader plugin
+  freq_ghz: 143.0
+  fwhm_arcmin: 7.3
+  unit: "K_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  beam_fits: "data/planck_pr3/BeamWf_HFI_R3.01/Wl_R3.01_fullsky_143x143.fits"
+  beam_column: "TT_2_TT"
+  bandpass: null        
+  calerr: 0.01        
+planck100_pr3:
+  filename: "data/planck_pr3/HFI_SkyMap_100_2048_R3.01_full.fits"
+  read_class: "PlanckHFIPR3Map"     # reader plugin
+  freq_ghz: 100.0
+  fwhm_arcmin: 9.7
+  unit: "K_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  beam_fits: "data/planck_pr3/BeamWf_HFI_R3.01/Wl_R3.01_fullsky_100x100.fits"
+  beam_column: "TT_2_TT"
+  bandpass: null    
+  calerr: 0.01            
+planck070_cosmo:
+  filename: "data/cosmoglobe/CG_070_IQU_n1024_v1.fits"
+  read_class: "CosmoglobeMap"     # reader plugin
+  freq_ghz: 70.4
+  fwhm_arcmin: 13.3
+  unit: "uK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  beam_ext: "BEAMWF_070X070"
+  beam_fits: "data/planck_pr3/LFI_RIMO_R3.31.fits"
+  bandpass: null       
+  calerr: 0.01         
+planck044_cosmo:
+  filename: "data/cosmoglobe/CG_044_IQU_n0512_v1.fits"
+  read_class: "CosmoglobeMap"     # reader plugin
+  freq_ghz: 44.1
+  fwhm_arcmin: 27.1
+  unit: "uK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  beam_ext: "BEAMWF_044X044"
+  beam_fits: "data/planck_pr3/LFI_RIMO_R3.31.fits"
+  bandpass: null      
+  calerr: 0.01          
+planck030_cosmo:
+  filename: "data/cosmoglobe/CG_030_IQU_n0512_v1.fits"
+  read_class: "CosmoglobeMap"     # reader plugin
+  freq_ghz: 28.4
+  fwhm_arcmin: 32.4
+  unit: "uK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  beam_ext: "BEAMWF_030X030"
+  beam_fits: "data/planck_pr3/LFI_RIMO_R3.31.fits"
+  bandpass: null                
+  calerr: 0.01
+wmapK_cosmo:
+  filename: "data/cosmoglobe/CG_023-WMAP_K_IQU_n0512_v1.fits"
+  freq_ghz: 22.5
+  fwhm_arcmin: 49.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapKa_cosmo:
+  filename: "data/cosmoglobe/CG_030-WMAP_Ka_IQU_n0512_v1.fits"
+  freq_ghz: 33.0
+  fwhm_arcmin: 40.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapQ1_cosmo:
+  filename: "data/cosmoglobe/CG_040-WMAP_Q1_IQU_n0512_v1.fits"
+  freq_ghz: 40.7
+  fwhm_arcmin: 31.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapQ2_cosmo:
+  filename: "data/cosmoglobe/CG_040-WMAP_Q2_IQU_n0512_v1.fits"
+  freq_ghz: 40.7
+  fwhm_arcmin: 31.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapV1_cosmo:
+  filename: "data/cosmoglobe/CG_060-WMAP_V1_IQU_n0512_v1.fits"
+  freq_ghz: 60.8
+  fwhm_arcmin: 21.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapV2_cosmo:
+  filename: "data/cosmoglobe/CG_060-WMAP_V2_IQU_n0512_v1.fits"
+  freq_ghz: 60.8
+  fwhm_arcmin: 21.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapW1_cosmo:
+  filename: "data/cosmoglobe/CG_090-WMAP_W1_IQU_n0512_v1.fits"
+  freq_ghz: 93.5
+  fwhm_arcmin: 13.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapW2_cosmo:
+  filename: "data/cosmoglobe/CG_090-WMAP_W2_IQU_n0512_v1.fits"
+  freq_ghz: 93.5
+  fwhm_arcmin: 13.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapW3_cosmo:
+  filename: "data/cosmoglobe/CG_090-WMAP_W3_IQU_n0512_v1.fits"
+  freq_ghz: 93.5
+  fwhm_arcmin: 13.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01
+wmapW4_cosmo:
+  filename: "data/cosmoglobe/CG_090-WMAP_W4_IQU_n0512_v1.fits"
+  freq_ghz: 93.5
+  fwhm_arcmin: 13.0
+  read_class: "CosmoglobeWMAPMap"     # reader plugin
+  unit: "mK_CMB"
+  coord: "G"                    # or "C"
+  stokes: ["I","Q","U"]         # or ["I"]
+  pol_convention: "COSMO"         # Q/U sign
+  calerr: 0.01

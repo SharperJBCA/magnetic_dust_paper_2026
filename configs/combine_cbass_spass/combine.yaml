@@ -1,0 +1,6 @@
+spass_id: "spass"
+cbass_id: "cbass"
+
+sync_beta: -3.1
+mask_percentile: 95
+target_fwhm_arcmin: 60.0 

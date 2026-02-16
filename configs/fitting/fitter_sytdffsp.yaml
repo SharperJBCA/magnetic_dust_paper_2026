@@ -1,0 +1,292 @@
+fitter:
+  sims_h5: "products/simulations/v001_sytdffspmd02/simulations.h5"
+  processed_h5: "products/processed_maps/v001/processed_maps.h5"
+  sims_tag: "v001_sytdffspmd03"
+  out_dir: "products/fits"
+  
+  targets:
+    - litebird_HFT_H1-195
+    - litebird_HFT_H1-280
+    - litebird_HFT_H2-235
+    - litebird_HFT_H2-337
+    - litebird_HFT_H3-402
+    - litebird_LFT_L1-040
+    - litebird_LFT_L1-060
+    - litebird_LFT_L1-078
+    - litebird_LFT_L2-050
+    - litebird_LFT_L2-068
+    - litebird_LFT_L2-089
+    - litebird_LFT_L3-068
+    - litebird_LFT_L3-089
+    - litebird_LFT_L3-119
+    - litebird_LFT_L4-078
+    - litebird_LFT_L4-100
+    - litebird_LFT_L4-140
+    - litebird_MFT_M1-100
+    - litebird_MFT_M1-140
+    - litebird_MFT_M1-195
+    - litebird_MFT_M2-119
+    - litebird_MFT_M2-166
+    - planck353_pr3
+    - planck217_pr3
+    - planck143_pr3
+    - planck100_pr3
+    - planck070_cosmo
+    - planck044_cosmo 
+    - planck030_cosmo
+    - wmapK_cosmo
+    - wmapKa_cosmo 
+    - wmapQ1_cosmo
+    - wmapQ2_cosmo
+    - wmapV1_cosmo
+    - wmapV2_cosmo
+    - wmapW1_cosmo
+    - wmapW2_cosmo
+    - wmapW3_cosmo
+    - wmapW4_cosmo
+    - cbass_spass
+
+  gains:
+    - name: planck353_pr3
+      param: cal_planck353_pr3
+      init: 1.0
+      priors: 
+        - type: normal
+          params:
+            cal_planck353_pr3: [1.0,0.01]
+    - name: planck217_pr3
+      param: cal_planck217_pr3
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck217_pr3: [1.0, 0.01]
+
+    - name: planck143_pr3
+      param: cal_planck143_pr3
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck143_pr3: [1.0, 0.01]
+
+    - name: planck100_pr3
+      param: cal_planck100_pr3
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck100_pr3: [1.0, 0.01]
+
+    - name: planck070_cosmo
+      param: cal_planck070_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck070_cosmo: [1.0, 0.01]
+
+    - name: planck044_cosmo
+      param: cal_planck044_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck044_cosmo: [1.0, 0.01]
+
+    - name: planck030_cosmo
+      param: cal_planck030_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck030_cosmo: [1.0, 0.01]
+
+    - name: wmapK_cosmo
+      param: cal_wmapK_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapK_cosmo: [1.0, 0.01]
+
+    - name: wmapKa_cosmo
+      param: cal_wmapKa_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapKa_cosmo: [1.0, 0.01]
+
+    - name: wmapQ1_cosmo
+      param: cal_wmapQ1_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapQ1_cosmo: [1.0, 0.01]
+
+    - name: wmapQ2_cosmo
+      param: cal_wmapQ2_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapQ2_cosmo: [1.0, 0.01]
+
+    - name: wmapV1_cosmo
+      param: cal_wmapV1_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapV1_cosmo: [1.0, 0.01]
+
+    - name: wmapV2_cosmo
+      param: cal_wmapV2_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapV2_cosmo: [1.0, 0.01]
+
+    - name: wmapW1_cosmo
+      param: cal_wmapW1_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW1_cosmo: [1.0, 0.01]
+
+    - name: wmapW2_cosmo
+      param: cal_wmapW2_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW2_cosmo: [1.0, 0.01]
+
+    - name: wmapW3_cosmo
+      param: cal_wmapW3_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW3_cosmo: [1.0, 0.01]
+
+    - name: wmapW4_cosmo
+      param: cal_wmapW4_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW4_cosmo: [1.0, 0.01]
+
+    - name: cbass_spass
+      param: cal_cbass_spass
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_cbass_spass: [1.0, 0.03]
+
+
+
+
+  components:
+    - name: synchrotron
+      cls_name: SynchPowerLaw
+      template_name: synchrotron
+      stokes: [I, Q, U]
+
+      # component-param -> global-param
+      params_map:
+        #A: A_s
+        beta: beta_s
+
+      fixed_params:
+        A: 1.0
+        nu0_ghz: 4.76
+      init:
+        beta: [-3.1, 0.05] # initial parameter and sigma of initial walkers
+
+      priors:
+        - type: bounds
+          params:
+            beta: [-5, -2]
+
+        - type: normal
+          params:
+            beta: [-3.1, 0.5]
+
+    - name: dust
+      cls_name: ThermalDust
+      stokes: ["I","Q","U"]
+      template_name: thermal_dust
+      params_map:
+        #A: A_d
+        beta_d: beta_d
+        T_d: T_d
+      fixed_params:
+        A: 1.0
+        nu0_ghz: 353.0
+      init:
+        beta_d: [1.8, 0.1]
+        T_d: [20.0,2.0]
+      priors:
+        - type: bounds
+          params:
+            beta_d: [0.5, 2.5]
+            T_d: [5.0, 50.0]
+        - type: normal
+          params:
+            beta_d: [1.8, 0.3]
+            T_d: [20.0, 5.0]
+
+    - name: freefree
+      cls_name: FreeFree
+      stokes: ["I"]
+      template_name: freefree
+      params_map:
+        Te: Te
+      init:
+        Te: [7000.0,1000.0]
+      priors:
+        - type: bounds
+          params: {Te: [2000.0, 20000.0]}
+        - type: normal
+          params: {Te: [7000.0, 4000.0]}
+
+    - name: spinningdust
+      cls_name: SpinningDustLogNorm
+      stokes: ["I"]
+      template_name: thermal_dust
+      params_map:
+        A: A_sd
+        W: W
+        nu0_peak: nu0_peak
+      fixed_params:
+        nu0_ghz: 30.0
+      init:
+        A: [-0.69,0.02]
+        W: [0.25,0.025]
+        nu0_peak: [30.0,3.0]
+      priors:
+        - type: bounds
+          params:
+            A: [null, null]
+            W: [0.1, 10.0]
+            nu0_peak: [5.0, 100.0]
+
+  outputs:
+    save_samples: true
+    save_summary: true
+    plots:
+      corner: true
+      trace: true
+      resid_hist: true
+      resid_maps: true
+      spectrum: true
+    posterior_predictive:
+      enabled: true
+      ndraw: 200

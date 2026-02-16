@@ -1,0 +1,178 @@
+regions:
+  group_name: "gal_plus_high_1"
+  masks:
+
+    plane_core_l300l060:
+      type: percentile_threshold
+      kwargs:
+        map_id: "cbass_spass"
+        stokes: "I"
+        percentile: 70.0            
+        max_lat: 10.0
+        min_lat: -10.0
+        max_lat_threshold: 20
+        min_lat_threshold: -20
+        lon_range: [60,300]
+        inner_lon: true
+    plane_core_l060l120:
+      type: percentile_threshold
+      kwargs:
+        map_id: "cbass_spass"
+        stokes: "I"
+        percentile: 70.0            
+        max_lat: 10.0
+        min_lat: -10.0
+        max_lat_threshold: 20
+        min_lat_threshold: -20
+        lon_range: [60,120]
+    plane_core_l120l180:
+      type: percentile_threshold
+      kwargs:
+        map_id: "cbass_spass"
+        stokes: "I"
+        percentile: 70.0            
+        max_lat: 10.0
+        min_lat: -10.0
+        max_lat_threshold: 20
+        min_lat_threshold: -20
+        lon_range: [120,180]
+    plane_core_l180l240:
+      type: percentile_threshold
+      kwargs:
+        map_id: "cbass_spass"
+        stokes: "I"
+        percentile: 70.0            
+        max_lat: 10.0
+        min_lat: -10.0
+        max_lat_threshold: 20
+        min_lat_threshold: -20
+        lon_range: [180,240]
+    plane_core_l240l300:
+      type: percentile_threshold
+      kwargs:
+        map_id: "cbass_spass"
+        stokes: "I"
+        percentile: 70.0            
+        max_lat: 10.0
+        min_lat: -10.0
+        max_lat_threshold: 20
+        min_lat_threshold: -20
+        lon_range: [240,300]
+
+
+    loopI_north:
+      type: percentile_threshold
+      kwargs:
+        map_id: "cbass_spass"
+        stokes: "I"
+        percentile: 60.0            
+        max_lat_threshold: 90
+        min_lat_threshold: 20
+        lon_range: [60,300]
+        inner_lon: true
+
+    loopI_south:
+      type: percentile_threshold
+      kwargs:
+        map_id: "cbass_spass"
+        stokes: "I"
+        percentile: 40.0       
+        min_lat_threshold: -90
+        max_lat_threshold: -20
+        lon_range: [60,300]
+        inner_lon: true
+
+    highlat1:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [0,180]
+        lat_range: [0,45]
+
+    highlat2:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [180,360]
+        lat_range: [0,45]
+
+    highlat3:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [0,180]
+        lat_range: [45,90]
+
+    highlat4:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [180,360]
+        lat_range: [45,90]
+
+    highlat5:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [0,180]
+        lat_range: [-45,0]
+
+    highlat6:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [180,360]
+        lat_range: [-45,0]
+
+    highlat7:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [0,180]
+        lat_range: [-90,-45]
+
+    highlat8:
+      type: regions_minus_masks
+      kwargs:
+        mask_names: ["loopI_south","loopI_north","plane_core_l300l060","plane_core_l060l120","plane_core_l120l180","plane_core_l180l240","plane_core_l240l300"]
+        lon_range: [180,360]
+        lat_range: [-90,-45]
+
+
+  # --- named output regions (disjoint) ---
+  regions:
+    # Galactic plane split by longitude
+    - id: "plane_l000_060"
+      description: "Plane region, 0<l<60 (excluding NPS)"
+      mask: {type: and, items: [plane_minus_nps, {type: lon_range, l_min_deg: 0, l_max_deg: 60}]}
+
+    - id: "plane_l060_120"
+      mask: {type: and, items: [plane_minus_nps, {type: lon_range, l_min_deg: 60, l_max_deg: 120}]}
+
+    # Explicit NPS regions
+    - id: "nps_north"
+      mask: nps_north
+
+    - id: "nps_south"
+      mask: nps_south
+
+    # High latitude chunks (outside plane_core)
+    - id: "highlat_north_l000_180"
+      mask:
+        type: and
+        items:
+          - highlat
+          - {type: lat_band, b_min_deg: 0, b_max_deg: 90}
+          - {type: lon_range, l_min_deg: 0, l_max_deg: 180}
+
+    - id: "highlat_south_l180_360"
+      mask:
+        type: and
+        items:
+          - highlat
+          - {type: lat_band, b_min_deg: -90, b_max_deg: 0}
+          - {type: lon_range, l_min_deg: 180, l_max_deg: 360}
+
+  qc:
+    enabled: true
+    projections: ["mollview"]

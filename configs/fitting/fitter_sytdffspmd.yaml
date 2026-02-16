@@ -1,0 +1,332 @@
+fitter:
+  sims_h5: "/scratch/nas_cbassarc/sharper/work/CBASS_MagneticDust/magnetic_dust_paper_2026/suites/suite_litebird_plwp_run01_batch15/j0000_A0.1_phi0.03/products/simulations/j0000_A0.1_phi0.03_r0000/simulations.h5"
+  processed_h5: "products/processed_maps/v001/processed_maps.h5"
+  sims_tag: "v001_sytdffspmd03"
+  out_dir: "products/fits"
+  
+  targets:
+    - planck353_pr3
+    - planck217_pr3
+    - planck143_pr3
+    - planck100_pr3
+    - planck070_cosmo
+    - planck044_cosmo 
+    - planck030_cosmo
+    - wmapK_cosmo
+    - wmapKa_cosmo 
+    - wmapQ1_cosmo
+    - wmapQ2_cosmo
+    - wmapV1_cosmo
+    - wmapV2_cosmo
+    - wmapW1_cosmo
+    - wmapW2_cosmo
+    - wmapW3_cosmo
+    - wmapW4_cosmo
+    - cbass_spass
+
+  gains:
+    - name: planck353_pr3
+      param: cal_planck353_pr3
+      init: 1.0
+      priors: 
+        - type: normal
+          params:
+            cal_planck353_pr3: [1.0,0.01]
+    - name: planck217_pr3
+      param: cal_planck217_pr3
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck217_pr3: [1.0, 0.01]
+
+    - name: planck143_pr3
+      param: cal_planck143_pr3
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck143_pr3: [1.0, 0.01]
+
+    - name: planck100_pr3
+      param: cal_planck100_pr3
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck100_pr3: [1.0, 0.01]
+
+    - name: planck070_cosmo
+      param: cal_planck070_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck070_cosmo: [1.0, 0.01]
+
+    - name: planck044_cosmo
+      param: cal_planck044_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck044_cosmo: [1.0, 0.01]
+
+    - name: planck030_cosmo
+      param: cal_planck030_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_planck030_cosmo: [1.0, 0.01]
+
+    - name: wmapK_cosmo
+      param: cal_wmapK_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapK_cosmo: [1.0, 0.01]
+
+    - name: wmapKa_cosmo
+      param: cal_wmapKa_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapKa_cosmo: [1.0, 0.01]
+
+    - name: wmapQ1_cosmo
+      param: cal_wmapQ1_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapQ1_cosmo: [1.0, 0.01]
+
+    - name: wmapQ2_cosmo
+      param: cal_wmapQ2_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapQ2_cosmo: [1.0, 0.01]
+
+    - name: wmapV1_cosmo
+      param: cal_wmapV1_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapV1_cosmo: [1.0, 0.01]
+
+    - name: wmapV2_cosmo
+      param: cal_wmapV2_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapV2_cosmo: [1.0, 0.01]
+
+    - name: wmapW1_cosmo
+      param: cal_wmapW1_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW1_cosmo: [1.0, 0.01]
+
+    - name: wmapW2_cosmo
+      param: cal_wmapW2_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW2_cosmo: [1.0, 0.01]
+
+    - name: wmapW3_cosmo
+      param: cal_wmapW3_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW3_cosmo: [1.0, 0.01]
+
+    - name: wmapW4_cosmo
+      param: cal_wmapW4_cosmo
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_wmapW4_cosmo: [1.0, 0.01]
+
+    - name: cbass_spass
+      param: cal_cbass_spass
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_cbass_spass: [1.0, 0.3]
+
+
+
+
+
+
+  components:
+    - name: synchrotron
+      cls_name: SynchPowerLaw
+      template_name: synchrotron
+      stokes: [I, Q, U]
+
+      # component-param -> global-param
+      params_map:
+      #   #A: A_s
+        beta: beta_s
+
+      fixed_params:
+        A: 1.0
+        nu0_ghz: 4.76
+        #beta: -3.1
+      init:
+        beta: [-3.1, 0.05] # initial parameter and sigma of initial walkers
+
+      priors:
+        - type: bounds
+          params:
+            beta: [-5, -2]
+
+        - type: normal
+          params:
+            beta: [-3.1, 0.5]
+
+    - name: dust
+      cls_name: ThermalDust
+      stokes: ["I","Q","U"]
+      template_name: thermal_dust
+      params_map:
+        beta_d: beta_d
+        T_d: T_d
+      fixed_params:
+        A: 1.0
+        nu0_ghz: 353.0
+        #beta_d: 1.8 
+        #T_d: 20.0
+      init:
+        beta_d: [1.8, 0.1]
+        T_d: [20.0,0.1]
+      priors:
+        - type: bounds
+          params:
+            beta_d: [0.5, 2.5]
+            T_d: [5.0, 50.0]
+        - type: normal
+          params:
+            beta_d: [1.8, 0.3]
+            T_d: [20.0, 1.0]
+
+    - name: freefree
+      cls_name: FreeFree
+      stokes: ["I"]
+      template_name: freefree
+      params_map:
+        Te: Te
+      init:
+        Te: [7000.0,2000.0]
+      priors:
+        - type: bounds
+          params: {Te: [2000.0, 20000.0]}
+        - type: normal
+          params: {Te: [7000.0, 4000.0]}
+
+    - name: spinningdust
+      cls_name: SpinningDustLogNorm
+      stokes: ["I"]
+      template_name: thermal_dust
+      params_map:
+        A: A_sd
+        W: W
+        nu0_peak: nu0_peak
+      fixed_params:
+        nu0_ghz: 30.0
+        #A: -0.69
+        #W: 0.25 
+        #nu0_peak: 30.0
+      init:
+        A: [-0.69,0.02]
+        W: [0.25,0.025]
+        nu0_peak: [30.0,3.0]
+      priors:
+        - type: bounds
+          params:
+            A: [null, null]
+            W: [0.1, 10.0]
+            nu0_peak: [5.0, 100.0]
+
+    # - name: magneticdust
+    #   cls_name: MagneticDustInclusions
+    #   stokes: ["I","Q","U"]
+    #   template_name: thermal_dust
+    #   params_map:
+    #     A: A_md
+    #     chi0: chi0
+    #     omega0_THz: omega0_THz
+    #   fixed_params:
+    #     nu0_ghz: 70.0
+    #     L_short: 0.5272003
+    #     Td: 20.0
+    #     phi: -3.45
+    #   init:
+    #     A: [-2.3,0.05] # 0.1, 0.01]
+    #     chi0: [3.3,0.03]
+    #     omega0_THz: [-0.69,0.05]
+    #   priors:
+    #     - type: bounds
+    #       params:
+    #         A: [-20, 20]
+    #         chi0: [1.0,10.0]
+    #         omega0_THz: [-10,10]
+
+    - name: magneticdust
+      cls_name: MagneticDustInclusions
+      stokes: ["I","Q","U"]
+      template_name: thermal_dust
+      params_map:
+        A: A_md
+        chi0: chi0
+        omega0_THz: omega0_THz
+        phi: phi
+      fixed_params:
+        nu0_ghz: 70.0
+        L_short: 0.5272003
+        Td: 20.0
+        #phi: -3.45
+        #chi0: 1.19
+      init:
+        A: [-2.3,0.05] # 0.1, 0.01]
+        chi0: [ 1.19,0.03] # np.log(3.3)
+        phi: [-3.45,0.03]
+        omega0_THz: [-0.69,0.05]
+      priors:
+        - type: bounds
+          params:
+            A: [-20, 20]
+            chi0: [-20,20]
+            phi: [-20,20]
+            omega0_THz: [-10,10]
+        - type: normal
+          params:
+            omega0_THz: [-0.69,1]
+
+  outputs:
+    save_samples: true
+    save_summary: true
+    plots:
+      corner: true
+      trace: true
+      resid_hist: true
+      resid_maps: true
+      spectrum: true
+    posterior_predictive:
+      enabled: true
+      ndraw: 200

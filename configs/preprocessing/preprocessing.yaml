@@ -1,0 +1,192 @@
+wham:
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+
+cbass:
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+  - op: dec_mask
+    min_dec: -5.0 
+
+cbass_spass:
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+spass:
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+  - op: dec_mask
+    max_dec: 0.0
+
+planck353_pr3:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+planck217_pr3:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+planck143_pr3:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+planck100_pr3:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+planck070_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+planck044_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+planck030_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+  - op: subtract_cmb
+    cmb_map: "products/cmb/v001/smoothed_cmb_map_fwhm60.0arcmin.fits"
+
+wmapK_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapKa_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapQ1_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapQ2_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapV1_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapV2_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapW1_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapW2_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapW3_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+
+wmapW4_cosmo:
+  - op: unit_convert
+    to: "K_RJ"
+  - op: fix_pol_convention
+    to_pol_convention: "COSMO"
+  - op: smooth_maps
+    target_fwhm_arcmin: 60.0
+    nside_out: 16
+qc:
+  enabled: true
+  projection: "mollview"
+  maps: ["I","Q","U"]
+  variances: ["II","QQ","UU"]
+  histograms: true
+  show_mask: true

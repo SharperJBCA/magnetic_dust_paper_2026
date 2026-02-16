@@ -1,0 +1,125 @@
+fitter:
+  sims_h5: products/simulations/v001/simulations.h5
+  processed_h5: "products/processed_maps/v001/processed_maps.h5"
+
+  targets:
+    - planck353_pr3
+    - planck217_pr3
+    - planck143_pr3
+    - planck100_pr3
+    - planck070_cosmo
+    - planck044_cosmo 
+    - planck030_cosmo
+    - wmapK_cosmo
+    - wmapKa_cosmo 
+    - wmapQ1_cosmo
+    - wmapQ2_cosmo
+    - wmapV1_cosmo
+    - wmapV2_cosmo
+    - wmapW1_cosmo
+    - wmapW2_cosmo
+    - wmapW3_cosmo
+    - wmapW4_cosmo
+    - cbass_spass
+
+
+  components:
+    - name: synchrotron
+      cls_name: SynchPowerLaw
+      template_name: synchrotron
+      stokes: [I, Q, U]
+
+      # component-param -> global-param
+      params_map:
+        A: A_s
+        beta: beta_s
+
+      fixed_params:
+        nu0_ghz: 4.76
+      init:
+        A: 1.0
+        beta: -3.1
+
+      priors:
+        - type: bounds
+          params:
+            A: [0, null]
+            beta: [-5, -2]
+
+        - type: normal
+          params:
+            beta: [-3.1, 0.5]
+
+    - name: dust
+      cls_name: ThermalDust
+      stokes: ["I","Q","U"]
+      template_name: thermal_dust
+      params_map:
+        A: A_d
+        beta_d: beta_d
+        T_d: T_d
+      fixed_params:
+        nu0_ghz: 353.0
+      init:
+        A: 1.0
+        beta_d: 1.8
+        T_d: 20.0
+      priors:
+        - type: bounds
+          params:
+            A: [0, null]
+            beta_d: [0.5, 2.5]
+            T_d: [5.0, 50.0]
+        - type: normal
+          params:
+            beta_d: [1.8, 0.3]
+            T_d: [20.0, 5.0]
+
+    - name: freefree
+      cls_name: FreeFree
+      stokes: ["I"]
+      template_name: freefree
+      params_map:
+        Te: Te
+      init:
+        Te: 7000.0
+      priors:
+        - type: bounds
+          params: {Te: [2000.0, 20000.0]}
+        - type: normal
+          params: {Te: [7000.0, 2000.0]}
+
+    - name: spinningdust
+      cls_name: SpinningDustLogNorm
+      stokes: ["I"]
+      template_name: thermal_dust
+      params_map:
+        A: A_sd
+        W: W
+        nu0_peak: nu0_peak
+      fixed_params:
+        nu0_ghz: 30.0
+      init:
+        A: 0.5
+        W: 2.0
+        nu0_peak: 30.0
+      priors:
+        - type: bounds
+          params:
+            A: [0, null]
+            W: [0.1, 10.0]
+            nu0_peak: [5.0, 100.0]
+
+
+  outputs:
+    save_samples: true
+    save_summary: true
+    plots:
+      corner: true
+      trace: true
+      resid_hist: true
+      resid_maps: true
+      spectrum: true
+    posterior_predictive:
+      enabled: true
+      ndraw: 200

@@ -1,0 +1,44 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dylib
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---- Notebooks / scratch ----
+notebooks/
+*.ipynb
+
+# ---- Outputs / figures / logs ----
+outputs/
+logs/
+products/ 
+scripts/
+data/
+notebooks/
+suites/
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.svg
+*.npy
+*.npz
+
+# ---- Temp / misc ----
+temp.py
+*.tmp
+*.swp
+.DS_Store

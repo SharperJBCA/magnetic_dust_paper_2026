@@ -1,0 +1,124 @@
+simulations:
+  nsims: 100
+  seed: 12345
+
+  processed_h5: "products/processed_maps/v001/processed_maps.h5"
+  out_h5: "products/simulations/v001_sytdffsp/simulations.h5"
+
+  # Which map_ids to produce sims for (these must exist as groups in data_h5)
+  targets:
+    - planck353_pr3
+    - planck217_pr3
+    - planck143_pr3
+    - planck100_pr3
+    - planck070_cosmo
+    - planck044_cosmo 
+    - planck030_cosmo
+    - wmapK_cosmo
+    - wmapKa_cosmo 
+    - wmapQ1_cosmo
+    - wmapQ2_cosmo
+    - wmapV1_cosmo
+    - wmapV2_cosmo
+    - wmapW1_cosmo
+    - wmapW2_cosmo
+    - wmapW3_cosmo
+    - wmapW4_cosmo
+    - cbass_spass
+
+  # Optional: define regions / masks to apply to all outputs
+  region:
+    id: "highlat"
+    h5: "products/regions/v001/regions.h5"   
+    dataset: "mask"                           
+
+  # ---------- templates ----------
+  # These are named objects your components can reference.
+  templates:
+    dust_base:
+      template: planck353_pr3
+      template_class: TemplateBase
+      template_kwargs:
+        fill_value: 0.0
+
+    sync_base:
+      template: cbass_spass
+      template_class: TemplateBase
+      template_kwargs:
+        fill_value: 0.0
+
+    ff_base:
+      template: wham
+      template_class: TemplateBase
+      template_kwargs:
+        fill_value: 0.0
+
+
+  # ---------- components / sky model ----------
+  components:
+    - name: synch
+      class: SynchPowerLaw
+      stokes: ["I","Q","U"]
+      template: sync_base
+      params:
+        A: 1.0
+        beta: -3.1
+        nu0_ghz: 4.76
+
+    - name: dust
+      class: ThermalDust
+      stokes: ["I","Q","U"] # I don't think we need the stokes as the class should handle that but we can leave it here for now
+      template: dust_base
+      params:
+        A: 1.0 
+        beta_d: 1.8
+        T_d: 20.0
+        nu0_ghz: 353. 
+
+    - name: freefree
+      class: FreeFree
+      stokes: ["I"]
+      template: ff_base 
+      params:
+        Te: 7000. # for calculating Kelvin/Rayleigh or radio to H-alpha
+
+    - name: spinningdust
+      class: SpinningDustLogNorm
+      stokes: ['I']
+      template: dust_base
+      params:
+        A: 0.5
+        W: 2.0 # W is sigma^2 of log-normal
+        nu0_peak: 30.0 # peak of log normal 
+        nu0_ghz: 30.0  # normalization frequency
+
+    # - name: magneticdust
+    #   class: MagneticDustInclusions
+    #   stokes: ['I','Q','U']
+    #   template: dust_base
+    #   params:
+    #     A: 1.0
+    #     chi0: 3.3
+    #     phi: 0.03 # inclusions fraction
+    #     nu0_ghz: 70.0 # normalisation frequency
+
+  # ---------- noise ----------
+  noise:
+    enabled: false
+    seed_offset: 0
+    use_target_variance: true
+
+  qc:
+    enabled: false
+    projection: "mollview"
+    maps: ["I","Q","U"]
+    variances: ["II","QQ","UU"]
+    histograms: true
+    show_mask: true
+
+  # ---------- output ----------
+  output:
+    out_dir: "products/simulations"
+    filename: "sim_maps.h5"
+    store_truth: true        # store sampled params per sim
+    add_noise: false         # can evolve later

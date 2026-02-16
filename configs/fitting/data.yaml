@@ -1,0 +1,251 @@
+cbass:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "cbass"
+  freq_ghz: 4.76
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.03
+
+spass:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "spass"
+  freq_ghz: 2.3
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.03
+
+wham:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wham"
+  freq_ghz: null
+  unit: "R"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I"]
+  calerr: null
+
+planck353_pr3:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "planck353_pr3"
+  freq_ghz: 353.0
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"   # <- if you converted from COSMO during preprocessing
+  calerr: 0.01
+
+planck217_pr3:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "planck217_pr3"
+  freq_ghz: 217.0
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+planck143_pr3:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "planck143_pr3"
+  freq_ghz: 143.0
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+planck100_pr3:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "planck100_pr3"
+  freq_ghz: 100.0
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+planck070_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "planck070_cosmo"
+  freq_ghz: 70.4
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+planck044_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "planck044_cosmo"
+  freq_ghz: 44.1
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+planck030_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "planck030_cosmo"
+  freq_ghz: 28.4
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapK_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapK_cosmo"
+  freq_ghz: 22.5
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapKa_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapKa_cosmo"
+  freq_ghz: 33.0
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapQ1_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapQ1_cosmo"
+  freq_ghz: 40.7
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapQ2_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapQ2_cosmo"
+  freq_ghz: 40.7
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapV1_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapV1_cosmo"
+  freq_ghz: 60.8
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapV2_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapV2_cosmo"
+  freq_ghz: 60.8
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapW1_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapW1_cosmo"
+  freq_ghz: 93.5
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapW2_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapW2_cosmo"
+  freq_ghz: 93.5
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapW3_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapW3_cosmo"
+  freq_ghz: 93.5
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+wmapW4_cosmo:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "wmapW4_cosmo"
+  freq_ghz: 93.5
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.01
+
+# Optional derived dataset entry (once you generate it)
+cbass_spass:
+  source: "products/processed_maps/v001/processed_maps.h5"
+  group: "cbass_spass"
+  freq_ghz: 4.76
+  unit: "K_RJ"
+  fwhm_arcmin: 60.0
+  nside: 16
+  coord: "G"
+  stokes: ["I","Q","U"]
+  pol_convention: "COSMO"
+  calerr: 0.03
