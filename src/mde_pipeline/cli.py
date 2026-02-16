@@ -18,6 +18,7 @@ from src.mde_pipeline.utils.config import load_yaml
 from src.mde_pipeline.utils.paths import _ensure_parent, _default_fits_dir,_default_processed_h5,_default_regions_h5,_default_sims_h5,_default_combine_fits,_default_cmb_fits,_resolve_version_dir
 
 from src.mde_pipeline.utils.logging import setup_logging
+from src.mde_pipeline.utils.logging import get_logger
 
 from rich.traceback import install
 install(show_locals=False)
@@ -25,6 +26,7 @@ app = typer.Typer(
     add_completion=False,
     help="MDE pipeline CLI: preprocessing, simulations, fitting, and paper figures."
 )
+log = get_logger(__name__)
 
 
 def _print_plan(dry_run: bool, msg: str) -> None:
@@ -89,7 +91,7 @@ def preprocess(
 
 @app.command()
 def regions(
-    regions_cfg: Path = typer.Option(Path("configs/regions/regions.yaml"), "--config", "-c"),
+    regions_cfg: Path = typer.Option(Path("configs/regions/gal_plus_high_1.yaml"), "--config", "-c"),
     tag: str = typer.Option("v001", help="Version tag under products/XXX/ (and default processed)."),
     processed: Optional[Path] = typer.Option(None, help="Processed maps HDF5 (defaults by tag)."),
     out: Optional[Path] = typer.Option(None, help="Override output HDF5 path."),
@@ -98,7 +100,7 @@ def regions(
 ) -> None:
     processed_h5 = processed or _default_processed_h5(tag)
     out_h5 = out or _default_regions_h5(tag)
-    print(regions_cfg,processed_h5, out_h5)
+    log.info("Running regions with config=%s processed_h5=%s out_h5=%s", regions_cfg, processed_h5, out_h5)
     run_regions(regions_cfg,processed_h5, out_h5, overwrite=overwrite, dry_run=dry_run)
 
 
@@ -169,6 +171,7 @@ def fit(
 ) -> None:
     outdir = out_dir or _default_fits_dir(tag)
     regions_path = regions_h5 or _default_regions_h5(tag)
+    processed_path = processed_h5 or _default_processed_h5(tag)
 
     # If user didn't specify sims_h5, you can auto-detect default location.
     sims_path = sims_h5
@@ -180,7 +183,8 @@ def fit(
         data_yaml=data,
         templates_yaml=templates,
         regions_h5=regions_path,
-        processed_h5=sims_path,
+        processed_h5=processed_path,
+        sims_h5=sims_path,
         out_dir=outdir,
         run_name=run_name,
         region_ids=region_id,
@@ -198,8 +202,10 @@ def figures(
     overwrite: bool = typer.Option(False),
     dry_run: bool = typer.Option(False),
 ) -> None:
-    fit_dir = _default_fits_dir(tag) / run_name
-    run_figures(figures_cfg, fit_dir=fit_dir, out_dir=out_dir, overwrite=overwrite, dry_run=dry_run)
+    raise typer.BadParameter(
+        "The 'figures' command is not yet implemented. "
+        "Please run preprocessing/regions/simulate/fit commands directly for now."
+    )
 
 
 @app.command()
@@ -227,12 +233,12 @@ def run(
     fits_out = Path(paths.get("fits_out", "products/fits/v001"))
 
     # Config paths
-    instruments = Path(configs.get("instruments", "configs/instruments.yaml"))
-    preprocess_cfg = Path(configs.get("preprocess", "configs/preprocess.yaml"))
-    regions_cfg = Path(configs.get("regions", "configs/regions.yaml"))
+    instruments = Path(configs.get("instruments", "configs/preprocessing/instruments.yaml"))
+    preprocess_cfg = Path(configs.get("preprocess", "configs/preprocessing/preprocessing.yaml"))
+    regions_cfg = Path(configs.get("regions", "configs/regions/gal_plus_high_1.yaml"))
     templates = Path(configs.get("templates", "configs/templates/templates.yaml"))
     data = Path(configs.get("data", "configs/fitting/data.yaml"))
-    sims_cfg = Path(configs.get("sims", "configs/simulations.yaml"))
+    sims_cfg = Path(configs.get("sims", "configs/simulations/simulations.yaml"))
     fitter_cfg = Path(configs.get("fitter", "configs/fitting/fitter.yaml"))
     figures_cfg = Path(configs.get("figures", "configs/figures.yaml"))
 
@@ -251,17 +257,11 @@ def run(
             run_preprocess(instruments, preprocess_cfg, processed_h5, overwrite=overwrite, dry_run=dry_run)
 
         elif name == "regions":
-            run_regions(regions_cfg, regions_h5, overwrite=overwrite, dry_run=dry_run)
+            run_regions(regions_cfg, processed_h5, regions_h5, overwrite=overwrite, dry_run=dry_run)
 
         elif name == "simulate":
-            suite = args.get("suite")
             run_simulations(
                 sims_yaml=sims_cfg,
-                data_yaml=data,
-                templates_yaml=templates,
-                processed_h5=processed_h5,
-                out_h5=sims_h5,
-                suite=suite,
                 overwrite=overwrite,
                 dry_run=dry_run,
             )
@@ -284,13 +284,9 @@ def run(
             )
 
         elif name == "figures":
-            run_name = args.get("fit_run", "paper_main")
-            run_figures(
-                figures_yaml=figures_cfg,
-                fit_dir=fits_out / run_name,
-                out_dir=Path(args.get("out_dir", "paper/figures")),
-                overwrite=overwrite,
-                dry_run=dry_run,
+            raise typer.BadParameter(
+                "Recipe step 'figures' is not yet implemented. "
+                "Remove this step from your recipe for now."
             )
 
         else:

@@ -78,6 +78,7 @@ def run_fit(
     templates_yaml: Path,
     regions_h5: Path,
     processed_h5: Path, # can be simulations or real data
+    sims_h5: Optional[Path],
     out_dir: Path,
     run_name: str,
     region_ids: Optional[List[str]],
@@ -87,14 +88,14 @@ def run_fit(
     
     fitter_info = load_yaml(fitter_yaml)["fitter"]
     tag = 'v001' # for regions
-    sims_h5 = Path(fitter_info['sims_h5'])
+    sims_h5 = sims_h5 or Path(fitter_info['sims_h5'])
     sim_tag =  fitter_info['sims_tag']
     regions = RegionsIO(regions_h5, tag).load_regions('gal_plus_high_1')
-    processed_h5 = Path(fitter_info["processed_h5"])
+    processed_h5 = processed_h5 or Path(fitter_info["processed_h5"])
     templates = load_templates_config(templates_yaml, processed_h5) 
 
     mapsio = MapIO(data_path=str(sims_h5.parent), filename=sims_h5.name) 
-    out_dir = Path(fitter_info['out_dir']) / sim_tag 
+    out_dir = Path(out_dir) / sim_tag 
     maps = {}
     for map_name in fitter_info["targets"]:
         maps[map_name] = mapsio.read_map(map_name)
