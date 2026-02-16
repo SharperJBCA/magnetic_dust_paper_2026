@@ -1,6 +1,9 @@
-import numpy as np 
-from matplotlib import pyplot as plt 
-import healpy as hp 
+import numpy as np
+from matplotlib import pyplot as plt
+
+from ..utils.logging import get_logger
+
+log = get_logger(__name__)
 
 def _planck_Bnu(nu_hz: float, T: float) -> float:
     """
@@ -25,7 +28,7 @@ def plot_spectrum(components, out_dir):
     """
     
 
-    print('HELLO', out_dir)
+    log.debug("Generating spectrum QC plots in %s", out_dir)
 
     nside = 16
     npix = 12*nside**2
@@ -40,8 +43,6 @@ def plot_spectrum(components, out_dir):
                                         T=v['template'],
                                         params=v['params'])['I']
 
-    #for ipix in range(npix):
-    ipix = 0
     for i in range(n_components):
         hi = np.percentile(data[i,:,:],95,axis=1)
         lo = np.percentile(data[i,:,:],5,axis=1)
@@ -61,7 +62,6 @@ def plot_spectrum(components, out_dir):
     nside = 16
     npix = 12*nside**2
     nu_plot = np.logspace(0,3,100)
-    print('hello')
     component_names = list(components.keys())
     n_components = len(component_names)
     data = np.zeros((n_components,nu_plot.size, npix)) 
@@ -76,8 +76,6 @@ def plot_spectrum(components, out_dir):
                                         params=v['params']).get('U',0)
             data[j,i,:] = np.sqrt(Q**2 + U**2)
 
-    #for ipix in range(npix):
-    ipix = 0
     for i in range(n_components):
         hi = np.percentile(data[i,:,:],95,axis=1)
         lo = np.percentile(data[i,:,:],5,axis=1)
@@ -92,7 +90,6 @@ def plot_spectrum(components, out_dir):
     plt.xlim(1,1000) 
     cmb = _planck_Bnu(nu_plot*1e9,2.73) * nu_plot**-2
     plt.plot(nu_plot,cmb/np.max(cmb)*1e-8,'k--',lw=3)
-    print(f'{out_dir}/polarisation_spectrum.png')
+    log.debug("Saved spectrum QC plot: %s/polarisation_spectrum.png", out_dir)
     plt.savefig(f'{out_dir}/polarisation_spectrum.png')
     plt.close()
-

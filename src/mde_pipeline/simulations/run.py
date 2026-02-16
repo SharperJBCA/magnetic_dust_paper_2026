@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Dict, Any
-import numpy as np 
+import numpy as np
 
 from ..utils.logging import get_logger
 from ..utils.config import load_yaml
-from ..io import raw_maps_readers 
-from ..io.maps_io import MapIO, Map  
+from ..io.maps_io import MapIO, Map
 
 from ..templates.templates import load_templates_config
 from ..emission.components import COMPONENTS
@@ -93,7 +91,7 @@ def run_simulations(
             params = comp_cfg.get("params", {})
             validate_template_target(T, target)
 
-            if not comp_cfg["name"] in components:
+            if comp_cfg["name"] not in components:
                 components[comp_cfg["name"]]={
                     "params":params,
                     "template":T, 
