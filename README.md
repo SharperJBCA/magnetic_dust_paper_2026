@@ -274,3 +274,57 @@ mde fisher \
 # 3) Inspect combined summary
 cat products/fits/v001_sytdffspmd03/fisher_dataset_compare/fisher/dataset_set_comparison.json
 ```
+
+
+## 8) Quick test case: Fisher then MCMC (single region)
+
+Use this as a smoke test after generating one simulation realization.
+
+```bash
+# Fisher-only quick run
+python -m src.mde_pipeline.cli fit   --config configs/fitting/fitter_sytdffspmd.yaml   --data configs/fitting/data.yaml   --templates configs/templates/templates.yaml   --tag v001   --run-name smoke_fisher   --region <region_name>   --overwrite
+```
+
+Set in your fitter YAML:
+
+```yaml
+fitter:
+  modes:
+    run_fisher: true
+    run_mcmc: false
+```
+
+Then run MCMC on the same setup:
+
+```bash
+python -m src.mde_pipeline.cli fit   --config configs/fitting/fitter_sytdffspmd.yaml   --data configs/fitting/data.yaml   --templates configs/templates/templates.yaml   --tag v001   --run-name smoke_mcmc   --region <region_name>   --overwrite
+```
+
+with:
+
+```yaml
+fitter:
+  modes:
+    run_fisher: false
+    run_mcmc: true
+```
+
+## 9) Diagnostics and per-run tabular outputs
+
+The pipeline writes diagnostics per region automatically:
+
+- MCMC diagnostics: `corner.png`, `trace.png`, `resid_hist.png`, spectrum plot, and residual map products in each region folder.
+- Fisher diagnostics: `regions/<region>/fisher/fisher.npz`, `regions/<region>/fisher/corner.png`, and `regions/<region>/fisher/summary.json`.
+
+In addition, each fit run now writes a run-level CSV:
+
+- `products/fits/<tag>/<run_name>/run_summary.csv`
+
+This CSV includes, per region/mode row:
+
+- `run_id`, `region`, `mode`
+- quality-of-fit stats (`chi2`, `red_chi2`, `AIC`, `BIC`) for MCMC rows
+- Fisher 1-sigma values (`sigma_<param>`)
+- fiducial parameter values (`fid_<param>`) and best-fit values (`best_<param>`)
+
+This makes it straightforward to merge baseline and baseline+LiteBIRD runs and compare fit quality and MDE detectability in one table.
