@@ -20,6 +20,7 @@ from ..io.regions_io import RegionsIO
 from ..templates.templates import load_templates_config
 from ..utils.config import load_yaml
 from ..utils.logging import get_logger
+from ..fitting.priors import BoundsPrior
 
 log = get_logger(__name__)
 
@@ -126,6 +127,73 @@ def _eval_component_region_mean(spec, comp, template, nu_ghz: float, params: Dic
     return i_val, p_val
 
 
+def _collect_parameter_bounds(global_prior: Any) -> Dict[str, Tuple[Optional[float], Optional[float]]]:
+    bounds: Dict[str, Tuple[Optional[float], Optional[float]]] = {}
+
+    def _add_bound(name: str, lo: Optional[float], hi: Optional[float]) -> None:
+        prev = bounds.get(name)
+        if prev is None:
+            bounds[name] = (lo, hi)
+            return
+        prev_lo, prev_hi = prev
+        next_lo = lo if prev_lo is None else (max(prev_lo, lo) if lo is not None else prev_lo)
+        next_hi = hi if prev_hi is None else (min(prev_hi, hi) if hi is not None else prev_hi)
+        bounds[name] = (next_lo, next_hi)
+
+    if global_prior is None:
+        return bounds
+
+    if hasattr(global_prior, "bounds") and isinstance(global_prior.bounds, dict):
+        for p, v in global_prior.bounds.items():
+            if isinstance(v, (list, tuple)) and len(v) >= 2:
+                _add_bound(str(p), v[0], v[1])
+
+    if hasattr(global_prior, "priors"):
+        for pr in getattr(global_prior, "priors"):
+            if isinstance(pr, BoundsPrior) and hasattr(pr, "bounds"):
+                for p, v in pr.bounds.items():
+                    if isinstance(v, (list, tuple)) and len(v) >= 2:
+                        _add_bound(str(p), v[0], v[1])
+
+    return bounds
+
+
+def _draw_valid_posterior_samples(
+    means: np.ndarray,
+    cov: np.ndarray,
+    param_names: List[str],
+    bounds_lookup: Dict[str, Tuple[Optional[float], Optional[float]]],
+    sample_count: int,
+    rng: np.random.Generator,
+    max_attempt_factor: int = 30,
+) -> np.ndarray:
+    max_attempts = max(sample_count * max_attempt_factor, sample_count)
+    accepted: List[np.ndarray] = []
+    attempts = 0
+
+    while len(accepted) < sample_count and attempts < max_attempts:
+        draw = rng.multivariate_normal(means, cov)
+        attempts += 1
+        is_valid = True
+        for idx, pname in enumerate(param_names):
+            if pname not in bounds_lookup:
+                continue
+            lo, hi = bounds_lookup[pname]
+            value = float(draw[idx])
+            if lo is not None and value < lo:
+                is_valid = False
+                break
+            if hi is not None and value > hi:
+                is_valid = False
+                break
+        if is_valid:
+            accepted.append(draw)
+
+    if not accepted:
+        return np.empty((0, len(param_names)), dtype=float)
+    return np.asarray(accepted, dtype=float)
+
+
 def _write_fisher_sed_plots(
     reg_out: Path,
     model: Model,
@@ -133,16 +201,24 @@ def _write_fisher_sed_plots(
     params0: Dict[str, float],
     cov: np.ndarray,
     param_names: List[str],
+    global_prior: Any = None,
 ) -> None:
     nu_plot = np.logspace(np.log10(max(1.0, fitdata.frequencies_ghz.min() * 0.8)), np.log10(fitdata.frequencies_ghz.max() * 1.2), 220)
     rng = np.random.default_rng(0)
+    means = np.array([params0[p] for p in param_names], dtype=float)
+    bounds_lookup = _collect_parameter_bounds(global_prior)
     try:
-        draws = rng.multivariate_normal(
-            np.array([params0[p] for p in param_names], dtype=float),
-            cov,
-            size=140,
+        draws = _draw_valid_posterior_samples(
+            means=means,
+            cov=cov,
+            param_names=param_names,
+            bounds_lookup=bounds_lookup,
+            sample_count=140,
+            rng=rng,
         )
     except np.linalg.LinAlgError:
+        return
+    if draws.shape[0] == 0:
         return
     draw_params = [{n: float(v) for n, v in zip(param_names, draws[j])} for j in range(draws.shape[0])]
 
@@ -169,7 +245,10 @@ def _write_fisher_sed_plots(
                 comp_best[k] = val_best
                 comp_input[k] = val_best
                 for j, pd in enumerate(draw_params):
-                    i_d, p_d = _eval_component_region_mean(spec, comp, template, float(nu), pd)
+                    try:
+                        i_d, p_d = _eval_component_region_mean(spec, comp, template, float(nu), pd)
+                    except ValueError:
+                        continue
                     comp_draw[j, k] = i_d if mode == "I" else p_d
 
             comp_draw_abs = np.abs(comp_draw)
@@ -332,6 +411,7 @@ def run_fisher(
                 params0=param0,
                 cov=cov,
                 param_names=param_names,
+                global_prior=global_prior,
             )
 
             summary = {
