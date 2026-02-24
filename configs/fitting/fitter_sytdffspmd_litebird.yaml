@@ -400,6 +400,8 @@ fitter:
           params:
             omega0_THz: [-0.69,1]
 
+  include_gain_params_in_corner: false
+
   outputs:
     save_samples: true
     save_summary: true

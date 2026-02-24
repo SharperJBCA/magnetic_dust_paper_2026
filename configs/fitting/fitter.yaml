@@ -111,6 +111,8 @@ fitter:
             nu0_peak: [5.0, 100.0]
 
 
+  include_gain_params_in_corner: false
+
   outputs:
     save_samples: true
     save_summary: true
@@ -123,3 +125,39 @@ fitter:
     posterior_predictive:
       enabled: true
       ndraw: 200
+
+
+  mcmc:
+    burn_steps: 500
+    burn_stages: 1
+    prod_steps: 2500
+    prod_burnin: 1500
+    thin: 1
+    nwalkers: 64
+    prune_every: 250
+
+  validation:
+    enabled: false
+    grid_ids: [grid_000]
+    region_ids: []
+    # Optional per-grid map overrides:
+    # target_groups_by_grid:
+    #   grid_000:
+    #     planck353_pr3: planck353_pr3
+    # Optional per-grid HDF5 source overrides:
+    # grid_sources:
+    #   grid_000: products/simulations/v001/simulations.h5
+    mcmc:
+      burn_steps: 80
+      burn_stages: 1
+      prod_steps: 220
+      prod_burnin: 60
+      thin: 1
+      nwalkers: 32
+      prune_every: 100
+    tolerances:
+      sigma_ratio_min: 0.5
+      sigma_ratio_max: 1.5
+      corr_diff_norm_max: 1.0
+      pull_abs_max: 3.0
+    fail_on_exceed: false
