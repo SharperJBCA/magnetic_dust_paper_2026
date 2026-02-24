@@ -537,13 +537,4 @@ def run_fit(
             mcmc_cfg.clear()
             mcmc_cfg.update(mcmc_cfg_backup)
 
-    if run_rows:
-        fieldnames = sorted({k for row in run_rows for k in row.keys()})
-        summary_csv = out_run_dir / "run_summary.csv"
-        with open(summary_csv, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(run_rows)
-        log.info("Wrote run summary CSV: %s", summary_csv)
-
     log.info("Fit run complete: run=%s regions=%d elapsed=%.2fs", run_name, len(region_ids), perf_counter() - overall_t0)
