@@ -5,6 +5,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+import matplotlib.pyplot as plt
+
+try:
+    import corner
+except Exception:
+    corner = None
 
 from ..fitting.data_types import FitData, Model, build_components_from_yaml
 from ..fitting.fisher import fisher_gain_marginalized
@@ -46,6 +52,38 @@ def _snr_summary(params0: Dict[str, float], sigma_by_param: Dict[str, float], md
             continue
         summary[name] = float(abs(params0[name]) / sigma)
     return summary
+
+
+def _write_fisher_region_products(
+    reg_out: Path,
+    fisher: np.ndarray,
+    cov: np.ndarray,
+    param_names: List[str],
+    params0: Dict[str, float],
+    sigma_map: Dict[str, float],
+) -> None:
+    np.savez_compressed(
+        reg_out / "fisher_products.npz",
+        fisher=fisher,
+        covariance=cov,
+        param_names=np.array(param_names, dtype="U"),
+        fiducial=np.array([float(params0[p]) for p in param_names], dtype=float),
+        sigma_1d=np.array([float(sigma_map[p]) for p in param_names], dtype=float),
+    )
+
+    if corner is None:
+        return
+
+    means = np.array([float(params0[p]) for p in param_names], dtype=float)
+    draw_count = 3000
+    try:
+        samples = np.random.multivariate_normal(means, cov, size=draw_count)
+    except np.linalg.LinAlgError:
+        return
+
+    fig = corner.corner(samples, labels=param_names, show_titles=True)
+    fig.savefig(reg_out / "corner.png", dpi=180)
+    plt.close(fig)
 
 
 def run_fisher(
@@ -156,6 +194,14 @@ def run_fisher(
             _ensure_dir(reg_out)
             np.save(reg_out / "fisher.npy", F)
             np.save(reg_out / "cov.npy", cov)
+            _write_fisher_region_products(
+                reg_out=reg_out,
+                fisher=F,
+                cov=cov,
+                param_names=param_names,
+                params0=param0,
+                sigma_map=sigma_map,
+            )
 
             summary = {
                 "dataset_set": set_name,
@@ -163,6 +209,7 @@ def run_fisher(
                 "target_count": len(targets),
                 "targets": list(targets),
                 "param_names": param_names,
+                "fiducial": {p: float(param0[p]) for p in param_names},
                 "sigma_1d": sigma_map,
                 "covariance": cov.tolist(),
                 "magnetic_dust_params": md_params,
