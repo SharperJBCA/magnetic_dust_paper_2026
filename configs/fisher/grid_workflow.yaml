@@ -1,0 +1,40 @@
+workflow:
+  sims_config: configs/simulations/simulations_sytdffspmd.yaml
+  fisher_config: configs/fitting/fitter_sytdffspmd.yaml
+  data_config: configs/fitting/data.yaml
+  templates_config: configs/templates/templates.yaml
+  out_dir: products/fits/v001
+  regions_h5: products/regions/v001/regions.h5
+  processed_h5: products/processed_maps/v001/processed_maps.h5
+  manifest_out: products/fits/v001/fisher_grid_manifest_runtime.json
+
+grid:
+  grid_tag: fisher_grid_md
+  x_param: omega0_THz
+  y_param: chi0
+  region: north
+  dataset_sets: [baseline, baseline_plus_litebird]
+  use_physical_amplitude: false
+  include_ratio_panel: true
+  parameters:
+    - name: omega0_THz
+      values: [0.5, 0.7, 0.9]
+      sim_component: magneticdust
+      sim_param: omega0_THz
+      fitter_param: omega0_thz
+    - name: chi0
+      values: [0.7, 1.0, 1.3]
+      sim_component: magneticdust
+      sim_param: chi0
+      fitter_param: chi0
+
+model:
+  simulation_components: [synch, dust, freefree, spinningdust, magneticdust]
+  fitter_components: [synchrotron, thermaldust, freefree, spinningdust, magneticdust]
+  fixed_simulation_params:
+    magneticdust:
+      phi: -3.45
+      Td: 20.0
+  fixed_fitter_params:
+    phi: -3.45
+    Td: 20.0
