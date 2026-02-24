@@ -460,3 +460,4 @@ def run_fisher(
             sigma_map = region_block[set_name]["sigma_1d"]
             snr_txt = ", ".join(f"{k}:{v:.3g}" if v is not None else f"{k}:n/a" for k, v in snr_map.items())
             print(f"  - {set_name}: sigma(A_md)={sigma_map.get('A_md', float('nan')):.3g} ; SNR[{snr_txt}]")
+
