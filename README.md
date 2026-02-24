@@ -37,7 +37,7 @@ Typical order:
 2. `regions` — construct region masks from processed maps.
 3. `simulate` — generate simulated sky maps (optionally with gains/noise).
 4. `fit` — run Fisher and/or MCMC per region.
-5. `fisher` — standalone Fisher forecasts (separate runner).
+5. `fisher` — canonical Fisher forecasts (gain-marginalized, prior-aware, dataset-set comparisons).
 6. Optional utilities:
    - `combine-cbass-spass`
    - `smooth-cmb`
@@ -161,12 +161,17 @@ mde fisher \
 ```
 
 What it does:
-- Standalone Fisher pipeline with derivative controls (`--deriv-method`, `--stepsize`, `--num-points`, etc.).
-- Computes Jacobian via DerivKit and writes per-region Fisher/Covariance/Jacobian plus summary JSON.
+- Uses the same canonical Fisher engine as fitting (`src/mde_pipeline/fitting/fisher.py`), including gain-marginalized Fisher + Gaussian prior contributions.
+- Supports config-level `fitter.dataset_sets`, where each set defines a target list (e.g. `baseline`, `baseline_plus_litebird`).
+- Runs all configured dataset sets in one command and writes side-by-side outputs for each region:
+  - `sigma_1d` (per-parameter),
+  - full covariance,
+  - magnetic-dust SNR metric (`|theta_fid| / sigma`) for params with names like `A_md` / `phi`.
+- Writes per-set files under `.../fisher/<dataset_set>/<region>/` and a consolidated comparison file at `.../fisher/dataset_set_comparison.json`.
 
 When to use:
 - Use `mde fit` for integrated fit workflows.
-- Use `mde fisher` when you specifically want derivative-tunable Fisher forecasts.
+- Use `mde fisher` for canonical Fisher-only comparisons across dataset sets.
 
 ## `combine-cbass-spass`
 
@@ -250,3 +255,22 @@ Variant config sets you can choose from:
 - Some CLI defaults reference filenames that may not exist in this repo; pass explicit `--config` paths to avoid ambiguity.
 - Use a consistent `--tag` across preprocess/regions/simulate/fit so default paths line up.
 
+
+
+## 7) Minimal command sequence: simulation grid → Fisher dataset-set comparison
+
+```bash
+# 1) Build a simulation grid (example variant with magnetic dust + LiteBIRD)
+mde simulate --config configs/simulations/simulations_sytdffspmd_litebird.yaml
+
+# 2) Run canonical Fisher once; it executes all dataset_sets from fitter config
+mde fisher \
+  --config configs/fitting/fitter_sytdffspmd_litebird.yaml \
+  --data configs/fitting/data.yaml \
+  --templates configs/templates/templates.yaml \
+  --tag v001 \
+  --run-name fisher_dataset_compare
+
+# 3) Inspect combined summary
+cat products/fits/v001_sytdffspmd03/fisher_dataset_compare/fisher/dataset_set_comparison.json
+```
