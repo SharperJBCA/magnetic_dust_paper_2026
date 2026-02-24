@@ -85,6 +85,7 @@ def build_components_from_yaml(cfg: Dict[str, Any]) -> List[ComponentSpec]:
             )
         )
         for class_param, global_param in comps[-1].params_map.items():
+            print(class_param, global_param, c["init"][class_param])
             param0[global_param] = c["init"][class_param][0]
             widths0[global_param] = c["init"][class_param][1]
 

@@ -10,15 +10,13 @@ import numpy as np
 # DerivKit
 from derivkit import DerivativeKit  # robust numerical differentiation
 
-# Your pipeline imports (adjust if paths differ)
-from .data_types import FitData, Model
-from .param_vector import ParamVector
-from .likelihood import Likelihood
+from ..fitting.data_types import FitData, Model, build_components_from_yaml
+from ..fitting.emcee_runner import ParamVector
+from ..fitting.likelihood import Likelihood
 from ..io.regions_io import RegionsIO
 from ..io.maps_io import MapIO
-from ..utils.yaml import load_yaml
-from ..templates.loader import load_templates_config
-from .build import build_components_from_yaml
+from ..utils.config import load_yaml
+from ..templates.templates import load_templates_config
 
 
 def _ensure_dir(p: Path) -> None:
