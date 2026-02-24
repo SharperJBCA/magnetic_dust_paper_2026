@@ -124,18 +124,22 @@ def build_components_from_yaml(cfg: Dict[str, Any]) -> List[ComponentSpec]:
     # read in the gains
     gain_param_names = []
     if True:
-        gain_filename = Path(cfg['sims_h5']).parent / "gains.json" 
-        with open(gain_filename,'r') as gain_file:
-            gains = json.load(gain_file) 
+        gain_filename = Path(cfg['sims_h5']).parent / "gains.json"
+        if gain_filename.exists():
+            with open(gain_filename, 'r') as gain_file:
+                gains = json.load(gain_file)
+        else:
+            gains = {}
         
         # 
         for g in cfg.get("gains",[]):
             gparam = g["param"] 
             target = gparam.split('cal_')[1]
-            param0[gparam] = float(gains.get(target,1.0))
+            default_gain = float(g.get("init", 1.0))
+            param0[gparam] = float(gains.get(target, default_gain))
             gain_param_names.append(gparam)
             mu0,sig0 = g['priors'][0]['params'][gparam]
-            g['priors'][0]['params'][gparam] = [float(gains.get(target,1.0)),sig0]
+            g['priors'][0]['params'][gparam] = [float(gains.get(target, default_gain)),sig0]
             gp = build_prior(g.get("priors",None))
             if gp is not None: 
                 global_prior = gp if global_prior is None else (global_prior + gp)

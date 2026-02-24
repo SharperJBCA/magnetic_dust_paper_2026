@@ -107,6 +107,17 @@ def write_fisher_region_products(
         fig = corner.corner(corner_data, labels=corner_labels, show_titles=True)
         fig.savefig(d_fisher / "corner.png", dpi=200)
         plt.close(fig)
+
+    fisher_summary = {
+        "region": region_name,
+        "run_name": run_name_tag,
+        "sigma": {k: float(v) for k, v in fisher_result.items()},
+        "params0": {k: float(v) for k, v in params0.items()},
+    }
+    with open(d_fisher / "summary.json", "w") as f:
+        json.dump(fisher_summary, f, indent=2)
+
+    return fisher_summary
 # ---------- main writer ----------
 
 def write_region_products(
