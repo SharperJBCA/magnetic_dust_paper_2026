@@ -159,7 +159,7 @@ def run_fisher(
     n_workers: int = 1,
 ) -> None:
     """
-    Fisher-forecast runner mirroring your MCMC runner structure.
+    Fisher-forecast runner mirroring MCMC runner structure.
     Produces per-region Fisher matrices and 1D sigma summaries.
     """
     fitter_info = load_yaml(fitter_yaml)["fitter"]
