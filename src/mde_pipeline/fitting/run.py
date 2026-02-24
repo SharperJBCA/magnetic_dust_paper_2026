@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from time import perf_counter
 import numpy as np 
 
@@ -24,6 +24,58 @@ from .fit_output import write_region_products,write_fisher_region_products
 from .fisher import run_fisher,fisher_gain_marginalized
 
 log = get_logger(__name__)
+
+
+def _resolve_target_entries(
+    fitter_info: Dict[str, Any],
+    data_info: Dict[str, Any],
+    cli_maps_h5: Optional[Path],
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Resolve per-target source/group/calerr using a consistent precedence:
+      1) CLI override map path
+      2) fitter config defaults/overrides
+      3) data.yaml entry
+    """
+    fitter_default_source = fitter_info.get("sims_h5", fitter_info.get("processed_h5"))
+    target_groups = fitter_info.get("target_groups", {})
+    calerr_overrides = fitter_info.get("calibration_errors", {})
+
+    gain_prior_sigma: Dict[str, float] = {}
+    for g in fitter_info.get("gains", []):
+        gparam = str(g.get("param", ""))
+        if not gparam.startswith("cal_"):
+            continue
+        target = gparam.split("cal_", 1)[1]
+        priors = g.get("priors", [])
+        if priors and priors[0].get("type", "").lower() == "normal":
+            params = priors[0].get("params", {})
+            if gparam in params and len(params[gparam]) == 2:
+                gain_prior_sigma[target] = float(params[gparam][1])
+
+    resolved: Dict[str, Dict[str, Any]] = {}
+    missing = [t for t in fitter_info["targets"] if t not in data_info]
+    if missing:
+        raise KeyError(f"Targets missing from data.yaml: {missing}")
+
+    for target in fitter_info["targets"]:
+        dinfo = data_info[target]
+        source = cli_maps_h5 or fitter_default_source or dinfo.get("source")
+        if source is None:
+            raise ValueError(f"No source path could be resolved for target '{target}'")
+
+        group = target_groups.get(target, dinfo.get("group", target))
+        calerr = calerr_overrides.get(target, gain_prior_sigma.get(target, dinfo.get("calerr")))
+        freq = dinfo.get("freq_ghz")
+
+        resolved[target] = {
+            "source": Path(source),
+            "group": str(group),
+            "calerr": None if calerr is None else float(calerr),
+            "freq_ghz": freq,
+        }
+
+    return resolved
 
 def regen_region_products_from_npz(
     samples_npz: Path,
@@ -85,6 +137,7 @@ def run_fit(
 ) -> None:
     overall_t0 = perf_counter()
     fitter_info = load_yaml(fitter_yaml)["fitter"]
+    data_info = load_yaml(data_yaml)
 
     region_tag = str(fitter_info.get("regions_tag", "v001"))
     region_group = str(fitter_info.get("regions_group", "gal_plus_high_1"))
@@ -94,6 +147,7 @@ def run_fit(
         fitter_info.get("sims_h5", fitter_info["processed_h5"])
     )
     templates_h5 = Path(processed_h5) if processed_h5 is not None else Path(fitter_info["processed_h5"])
+    resolved_targets = _resolve_target_entries(fitter_info, data_info, Path(processed_h5) if processed_h5 is not None else None)
 
     out_root = Path(out_dir) if out_dir is not None else Path(fitter_info["out_dir"])
     run_name = run_name or str(fitter_info.get("run_name", "paper_main"))
@@ -123,10 +177,30 @@ def run_fit(
     regions = RegionsIO(regions_path, region_tag).load_regions(region_group)
     templates = load_templates_config(templates_yaml, templates_h5) 
 
-    mapsio = MapIO(data_path=str(maps_h5.parent), filename=maps_h5.name)
+    mapio_cache: Dict[Tuple[str, str], MapIO] = {}
     maps = {}
+    log.info("Resolved target inputs (source/group/freq/calerr):")
     for map_name in fitter_info["targets"]:
-        maps[map_name] = mapsio.read_map(map_name)
+        info = resolved_targets[map_name]
+        src = info["source"]
+        key = (str(src.parent), src.name)
+        if key not in mapio_cache:
+            mapio_cache[key] = MapIO(data_path=str(src.parent), filename=src.name)
+        m = mapio_cache[key].read_map(info["group"])
+        m.map_id = map_name
+        if info["calerr"] is not None:
+            m.calerr = info["calerr"]
+        if info["freq_ghz"] is not None:
+            m.freq_ghz = float(info["freq_ghz"])
+        maps[map_name] = m
+        log.info(
+            "  target=%s source=%s group=%s freq_ghz=%s calerr=%s",
+            map_name,
+            src,
+            info["group"],
+            m.freq_ghz,
+            m.calerr,
+        )
     if not region_ids:
         region_ids = regions.region_names
 
@@ -144,11 +218,10 @@ def run_fit(
         fitdata = FitData.create_from_dict( {map_name:v.slice_map(v,pixels) for map_name, v in maps.items()},
                                            ["I","Q","U"],
                                            pixels)
-        idx = 0
         for j, map_name in enumerate(fitdata.map_names):
-            if f"cal_{map_name}" in param0:
-                fitdata.calerror[j] = global_prior.priors[idx].bounds[f"cal_{map_name}"][1]
-                idx += 1
+            resolved_calerr = resolved_targets[map_name]["calerr"]
+            if resolved_calerr is not None:
+                fitdata.calerror[j] = resolved_calerr
 
         region_templates[region_name] = {template_name:v.slice_template(v,pixels) for template_name, v in templates.items()}
         model = Model(components, region_templates[region_name], stokes_order=['I','Q','U'])
