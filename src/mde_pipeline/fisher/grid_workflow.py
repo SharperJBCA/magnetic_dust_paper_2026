@@ -64,13 +64,27 @@ def _filter_component_lists(
     keep_sim_components: Optional[List[str]],
     keep_fitter_components: Optional[List[str]],
 ) -> None:
+    aliases = {
+        "thermaldust": "dust",
+    }
+
+    def _canonical_name(name: str) -> str:
+        lowered = name.lower()
+        return aliases.get(lowered, lowered)
+
     if keep_sim_components:
+        allowed = {_canonical_name(str(x)) for x in keep_sim_components}
         sim_cfg["simulations"]["components"] = [
-            c for c in sim_cfg.setdefault("simulations", {}).get("components", []) if str(c.get("name")) in keep_sim_components
+            c
+            for c in sim_cfg.setdefault("simulations", {}).get("components", [])
+            if _canonical_name(str(c.get("name"))) in allowed
         ]
     if keep_fitter_components:
+        allowed = {_canonical_name(str(x)) for x in keep_fitter_components}
         fit_cfg["fitter"]["components"] = [
-            c for c in fit_cfg.setdefault("fitter", {}).get("components", []) if str(c.get("name")) in keep_fitter_components
+            c
+            for c in fit_cfg.setdefault("fitter", {}).get("components", [])
+            if _canonical_name(str(c.get("name"))) in allowed
         ]
 
 
