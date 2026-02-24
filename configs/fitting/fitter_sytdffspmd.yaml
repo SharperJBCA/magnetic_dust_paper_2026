@@ -4,6 +4,27 @@ fitter:
   sims_tag: "v001_sytdffspmd03"
   out_dir: "products/fits"
   
+  dataset_sets:
+    baseline:
+      - planck353_pr3
+      - planck217_pr3
+      - planck143_pr3
+      - planck100_pr3
+      - planck070_cosmo
+      - planck044_cosmo
+      - planck030_cosmo
+      - wmapK_cosmo
+      - wmapKa_cosmo
+      - wmapQ1_cosmo
+      - wmapQ2_cosmo
+      - wmapV1_cosmo
+      - wmapV2_cosmo
+      - wmapW1_cosmo
+      - wmapW2_cosmo
+      - wmapW3_cosmo
+      - wmapW4_cosmo
+      - cbass_spass
+
   targets:
     - planck353_pr3
     - planck217_pr3

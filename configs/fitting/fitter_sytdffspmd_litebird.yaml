@@ -4,6 +4,68 @@ fitter:
   sims_tag: "v001_sytdffspmd03"
   out_dir: "products/fits"
   
+  dataset_sets:
+    baseline:
+      - planck353_pr3
+      - planck217_pr3
+      - planck143_pr3
+      - planck100_pr3
+      - planck070_cosmo
+      - planck044_cosmo
+      - planck030_cosmo
+      - wmapK_cosmo
+      - wmapKa_cosmo
+      - wmapQ1_cosmo
+      - wmapQ2_cosmo
+      - wmapV1_cosmo
+      - wmapV2_cosmo
+      - wmapW1_cosmo
+      - wmapW2_cosmo
+      - wmapW3_cosmo
+      - wmapW4_cosmo
+      - cbass_spass
+    baseline_plus_litebird:
+      - litebird_HFT_H1-195
+      - litebird_HFT_H1-280
+      - litebird_HFT_H2-235
+      - litebird_HFT_H2-337
+      - litebird_HFT_H3-402
+      - litebird_LFT_L1-040
+      - litebird_LFT_L1-060
+      - litebird_LFT_L1-078
+      - litebird_LFT_L2-050
+      - litebird_LFT_L2-068
+      - litebird_LFT_L2-089
+      - litebird_LFT_L3-068
+      - litebird_LFT_L3-089
+      - litebird_LFT_L3-119
+      - litebird_LFT_L4-078
+      - litebird_LFT_L4-100
+      - litebird_LFT_L4-140
+      - litebird_MFT_M1-100
+      - litebird_MFT_M1-140
+      - litebird_MFT_M1-195
+      - litebird_MFT_M2-119
+      - litebird_MFT_M2-166
+      - planck353_pr3
+      - planck217_pr3
+      - planck143_pr3
+      - planck100_pr3
+      - planck070_cosmo
+      - planck044_cosmo
+      - planck030_cosmo
+      - wmapK_cosmo
+      - wmapKa_cosmo
+      - wmapQ1_cosmo
+      - wmapQ2_cosmo
+      - wmapV1_cosmo
+      - wmapV2_cosmo
+      - wmapW1_cosmo
+      - wmapW2_cosmo
+      - wmapW3_cosmo
+      - wmapW4_cosmo
+      - cbass_spass
+
   targets:
     - litebird_HFT_H1-195
     - litebird_HFT_H1-280
