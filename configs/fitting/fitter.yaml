@@ -111,6 +111,8 @@ fitter:
             nu0_peak: [5.0, 100.0]
 
 
+  include_gain_params_in_corner: false
+
   outputs:
     save_samples: true
     save_summary: true

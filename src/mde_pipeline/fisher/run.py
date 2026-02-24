@@ -40,7 +40,13 @@ def _collect_dataset_sets(fitter_info: Dict[str, Any]) -> Dict[str, List[str]]:
 
 
 def _magnetic_dust_params(param_names: List[str]) -> List[str]:
-    return [p for p in param_names if ("md" in p.lower()) or p.lower() in {"phi", "phi_md"}]
+    wanted = {"a_md", "chi0", "phi", "phi_md", "omega0_thz"}
+    out: List[str] = []
+    for p in param_names:
+        pl = p.lower()
+        if ("md" in pl) or (pl in wanted):
+            out.append(p)
+    return out
 
 
 def _snr_summary(params0: Dict[str, float], sigma_by_param: Dict[str, float], md_params: List[str]) -> Dict[str, Optional[float]]:
@@ -61,6 +67,7 @@ def _write_fisher_region_products(
     param_names: List[str],
     params0: Dict[str, float],
     sigma_map: Dict[str, float],
+    include_gain_params_in_corner: bool,
 ) -> None:
     np.savez_compressed(
         reg_out / "fisher_products.npz",
@@ -74,16 +81,130 @@ def _write_fisher_region_products(
     if corner is None:
         return
 
-    means = np.array([float(params0[p]) for p in param_names], dtype=float)
+    corner_names = list(param_names)
+    if not include_gain_params_in_corner:
+        corner_names = [p for p in corner_names if not p.startswith("cal_")]
+    if not corner_names:
+        return
+
+    means = np.array([float(params0[p]) for p in corner_names], dtype=float)
+    idx = [param_names.index(p) for p in corner_names]
+    cov_plot = cov[np.ix_(idx, idx)]
     draw_count = 3000
     try:
-        samples = np.random.multivariate_normal(means, cov, size=draw_count)
+        samples = np.random.multivariate_normal(means, cov_plot, size=draw_count)
     except np.linalg.LinAlgError:
         return
 
-    fig = corner.corner(samples, labels=param_names, show_titles=True)
+    fig = corner.corner(samples, labels=corner_names, show_titles=True)
     fig.savefig(reg_out / "corner.png", dpi=180)
     plt.close(fig)
+
+
+def _marker_for_map(map_name: str) -> str:
+    name = map_name.lower()
+    if "cbass" in name or "spass" in name:
+        return "o"
+    if "wmap" in name:
+        return "s"
+    if "planck" in name:
+        return "^"
+    if "litebird" in name:
+        return "D"
+    return "x"
+
+
+def _eval_component_region_mean(spec, comp, template, nu_ghz: float, params: Dict[str, float]) -> Tuple[float, float]:
+    comp_params = dict(spec.fixed_params)
+    comp_params.update({arg: params[name] for arg, name in spec.params_map.items() if name in params})
+    out = comp.evaluate(nu_ghz=nu_ghz, T=template, params=comp_params)
+    z = np.zeros_like(template.I)
+    i_val = float(np.mean(out.get("I", z)))
+    q_val = float(np.mean(out.get("Q", z)))
+    u_val = float(np.mean(out.get("U", z)))
+    p_val = float(np.sqrt(q_val * q_val + u_val * u_val))
+    return i_val, p_val
+
+
+def _write_fisher_sed_plots(
+    reg_out: Path,
+    model: Model,
+    fitdata: FitData,
+    params0: Dict[str, float],
+    cov: np.ndarray,
+    param_names: List[str],
+) -> None:
+    nu_plot = np.logspace(np.log10(max(1.0, fitdata.frequencies_ghz.min() * 0.8)), np.log10(fitdata.frequencies_ghz.max() * 1.2), 220)
+    rng = np.random.default_rng(0)
+    try:
+        draws = rng.multivariate_normal(
+            np.array([params0[p] for p in param_names], dtype=float),
+            cov,
+            size=140,
+        )
+    except np.linalg.LinAlgError:
+        return
+    draw_params = [{n: float(v) for n, v in zip(param_names, draws[j])} for j in range(draws.shape[0])]
+
+    comp_labels = [spec.name for spec, _comp in model._comps]
+    comp_colors = {label: f"C{i % 10}" for i, label in enumerate(comp_labels)}
+
+    marker_by_freq = {float(nu): _marker_for_map(mn) for nu, mn in zip(fitdata.frequencies_ghz, fitdata.map_names)}
+
+    for mode, ylabel in [("I", "Intensity (region mean)"), ("P", "Polarized intensity (region mean)")]:
+        fig = plt.figure(figsize=(8, 5.5))
+        total_best = np.zeros_like(nu_plot)
+        total_input = np.zeros_like(nu_plot)
+        total_draws = np.zeros((draws.shape[0], nu_plot.size), dtype=float)
+
+        for ci, (spec, comp) in enumerate(model._comps):
+            template = model.templates[spec.template_name]
+            comp_best = np.zeros_like(nu_plot)
+            comp_input = np.zeros_like(nu_plot)
+            comp_draw = np.zeros((draws.shape[0], nu_plot.size), dtype=float)
+
+            for k, nu in enumerate(nu_plot):
+                i_best, p_best = _eval_component_region_mean(spec, comp, template, float(nu), params0)
+                val_best = i_best if mode == "I" else p_best
+                comp_best[k] = val_best
+                comp_input[k] = val_best
+                for j, pd in enumerate(draw_params):
+                    i_d, p_d = _eval_component_region_mean(spec, comp, template, float(nu), pd)
+                    comp_draw[j, k] = i_d if mode == "I" else p_d
+
+            comp_draw_abs = np.abs(comp_draw)
+            lo = np.percentile(comp_draw_abs, 0.15, axis=0)
+            hi = np.percentile(comp_draw_abs, 99.85, axis=0)
+            color = comp_colors[spec.name]
+            plt.fill_between(nu_plot, np.clip(lo, 1e-30, np.inf), np.clip(hi, 1e-30, np.inf), color=color, alpha=0.18)
+            plt.plot(nu_plot, np.clip(np.abs(comp_best), 1e-30, np.inf), color=color, lw=2, label=f"{spec.name} best-fit")
+            plt.plot(nu_plot, np.clip(np.abs(comp_input), 1e-30, np.inf), color=color, lw=1.4, ls="--", label=f"{spec.name} input")
+
+            total_best += comp_best
+            total_input += comp_input
+            total_draws += comp_draw
+
+        total_draws_abs = np.abs(total_draws)
+        total_lo = np.percentile(total_draws_abs, 0.15, axis=0)
+        total_hi = np.percentile(total_draws_abs, 99.85, axis=0)
+        plt.fill_between(nu_plot, np.clip(total_lo, 1e-30, np.inf), np.clip(total_hi, 1e-30, np.inf), color="k", alpha=0.12)
+        plt.plot(nu_plot, np.clip(np.abs(total_best), 1e-30, np.inf), color="k", lw=2.5, label="sum best-fit")
+        plt.plot(nu_plot, np.clip(np.abs(total_input), 1e-30, np.inf), color="k", lw=1.5, ls="--", label="sum input")
+
+        for nu, mk in marker_by_freq.items():
+            ytot = np.interp(float(nu), nu_plot, np.clip(np.abs(total_best), 1e-30, np.inf))
+            plt.scatter([nu], [ytot], marker=mk, color="k", s=40, zorder=5)
+
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.xlabel("Frequency [GHz]")
+        plt.ylabel(ylabel)
+        plt.title(f"{fitdata.map_names[0]}... {mode}-mode SED (region mean)")
+        plt.legend(fontsize=8, ncol=2)
+        plt.tight_layout()
+        suffix = "intensity" if mode == "I" else "polarized"
+        plt.savefig(reg_out / f"sed_{suffix}.png", dpi=180)
+        plt.close(fig)
 
 
 def run_fisher(
@@ -124,6 +245,7 @@ def run_fisher(
     components, param0, _widths0, global_prior, _gain_params = build_components_from_yaml(fitter_info)
     param_names = list(param0.keys())
     md_params = _magnetic_dust_params(param_names)
+    include_gain_params_in_corner = bool(fitter_info.get("include_gain_params_in_corner", False))
 
     out_root = Path(fitter_info.get("out_dir", out_dir)) / str(fitter_info.get("sims_tag", "v001")) / run_name
     _ensure_dir(out_root)
@@ -201,6 +323,15 @@ def run_fisher(
                 param_names=param_names,
                 params0=param0,
                 sigma_map=sigma_map,
+                include_gain_params_in_corner=include_gain_params_in_corner,
+            )
+            _write_fisher_sed_plots(
+                reg_out=reg_out,
+                model=model,
+                fitdata=fitdata,
+                params0=param0,
+                cov=cov,
+                param_names=param_names,
             )
 
             summary = {
