@@ -3,6 +3,7 @@ from typing import Dict, List, Any
 from dataclasses import dataclass 
 from pathlib import Path 
 import json 
+from numbers import Number
 from ..emission.components import COMPONENTS, EmissionComponent
 from ..io.maps_io import Map
 from .priors import Prior, build_prior
@@ -70,6 +71,9 @@ def build_components_from_yaml(cfg: Dict[str, Any]) -> List[ComponentSpec]:
     widths0 = {}
     global_prior: Prior = None 
 
+    min_default_width = float(cfg.get("default_init_width_min", 1e-3))
+    rel_default_width = float(cfg.get("default_init_width_frac", 0.05))
+
     for c in cfg.get("components", []):
         priors = build_prior(c.get("priors", None))
 
@@ -85,8 +89,36 @@ def build_components_from_yaml(cfg: Dict[str, Any]) -> List[ComponentSpec]:
             )
         )
         for class_param, global_param in comps[-1].params_map.items():
-            param0[global_param] = c["init"][class_param][0]
-            widths0[global_param] = c["init"][class_param][1]
+            init_val = c["init"][class_param]
+            if isinstance(init_val, (list, tuple)) and len(init_val) == 2:
+                param0[global_param] = float(init_val[0])
+                widths0[global_param] = float(init_val[1])
+                continue
+
+            if isinstance(init_val, Number):
+                init_float = float(init_val)
+                param0[global_param] = init_float
+
+                prior_sigma = None
+                for prior_cfg in c.get("priors", []):
+                    if prior_cfg.get("type", "").lower() != "normal":
+                        continue
+                    prior_params = prior_cfg.get("params", {})
+                    if class_param in prior_params and len(prior_params[class_param]) == 2:
+                        prior_sigma = prior_params[class_param][1]
+                        break
+
+                if prior_sigma is not None:
+                    widths0[global_param] = float(prior_sigma)
+                else:
+                    widths0[global_param] = max(min_default_width, rel_default_width * abs(init_float))
+                continue
+
+            raise ValueError(
+                "Invalid init format for component "
+                f"'{c['name']}', parameter '{class_param}': expected scalar or [value, width], "
+                f"got {init_val!r}"
+            )
 
     # build gain parameters 
     # read in the gains
