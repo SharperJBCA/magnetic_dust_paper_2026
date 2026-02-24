@@ -16,7 +16,62 @@ from ..fitting.likelihood import Likelihood
 from ..io.regions_io import RegionsIO
 from ..io.maps_io import MapIO
 from ..utils.config import load_yaml
+from ..utils.logging import get_logger
 from ..templates.templates import load_templates_config
+
+log = get_logger(__name__)
+
+
+def _resolve_target_entries(
+    fitter_info: Dict[str, Any],
+    data_info: Dict[str, Any],
+    cli_maps_h5: Optional[Path],
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Resolve per-target source/group/calerr using a consistent precedence:
+      1) CLI override map path
+      2) fitter config defaults/overrides
+      3) data.yaml entry
+    """
+    fitter_default_source = fitter_info.get("sims_h5", fitter_info.get("processed_h5"))
+    target_groups = fitter_info.get("target_groups", {})
+    calerr_overrides = fitter_info.get("calibration_errors", {})
+
+    gain_prior_sigma: Dict[str, float] = {}
+    for g in fitter_info.get("gains", []):
+        gparam = str(g.get("param", ""))
+        if not gparam.startswith("cal_"):
+            continue
+        target = gparam.split("cal_", 1)[1]
+        priors = g.get("priors", [])
+        if priors and priors[0].get("type", "").lower() == "normal":
+            params = priors[0].get("params", {})
+            if gparam in params and len(params[gparam]) == 2:
+                gain_prior_sigma[target] = float(params[gparam][1])
+
+    resolved: Dict[str, Dict[str, Any]] = {}
+    missing = [t for t in fitter_info["targets"] if t not in data_info]
+    if missing:
+        raise KeyError(f"Targets missing from data.yaml: {missing}")
+
+    for target in fitter_info["targets"]:
+        dinfo = data_info[target]
+        source = cli_maps_h5 or fitter_default_source or dinfo.get("source")
+        if source is None:
+            raise ValueError(f"No source path could be resolved for target '{target}'")
+
+        group = target_groups.get(target, dinfo.get("group", target))
+        calerr = calerr_overrides.get(target, gain_prior_sigma.get(target, dinfo.get("calerr")))
+        freq = dinfo.get("freq_ghz")
+
+        resolved[target] = {
+            "source": Path(source),
+            "group": str(group),
+            "calerr": None if calerr is None else float(calerr),
+            "freq_ghz": freq,
+        }
+
+    return resolved
 
 
 def _ensure_dir(p: Path) -> None:
@@ -161,6 +216,8 @@ def run_fisher(
     Produces per-region Fisher matrices and 1D sigma summaries.
     """
     fitter_info = load_yaml(fitter_yaml)["fitter"]
+    data_info = load_yaml(data_yaml)
+    resolved_targets = _resolve_target_entries(fitter_info, data_info, processed_h5)
 
     tag = fitter_info.get("regions_tag", "v001")
     sim_tag = fitter_info.get("sims_tag", "v001")
@@ -169,13 +226,30 @@ def run_fisher(
     regions = RegionsIO(regions_h5, tag).load_regions(fitter_info.get("regions_name", "gal_plus_high_1"))
     templates = load_templates_config(templates_yaml, processed_h5)
 
-    # Load maps (real or sim)
-    sims_h5 = Path(fitter_info["sims_h5"])
-    mapsio = MapIO(data_path=str(sims_h5.parent), filename=sims_h5.name)
-
+    mapio_cache: Dict[Tuple[str, str], MapIO] = {}
     maps = {}
+    log.info("Resolved target inputs (source/group/freq/calerr):")
     for map_name in fitter_info["targets"]:
-        maps[map_name] = mapsio.read_map(map_name)
+        info = resolved_targets[map_name]
+        src = info["source"]
+        key = (str(src.parent), src.name)
+        if key not in mapio_cache:
+            mapio_cache[key] = MapIO(data_path=str(src.parent), filename=src.name)
+        m = mapio_cache[key].read_map(info["group"])
+        m.map_id = map_name
+        if info["calerr"] is not None:
+            m.calerr = info["calerr"]
+        if info["freq_ghz"] is not None:
+            m.freq_ghz = float(info["freq_ghz"])
+        maps[map_name] = m
+        log.info(
+            "  target=%s source=%s group=%s freq_ghz=%s calerr=%s",
+            map_name,
+            src,
+            info["group"],
+            m.freq_ghz,
+            m.calerr,
+        )
 
     if not region_ids:
         region_ids = regions.region_names
