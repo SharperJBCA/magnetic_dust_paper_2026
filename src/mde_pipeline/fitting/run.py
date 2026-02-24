@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import csv
 from typing import Optional, Dict, Any, List, Tuple
 from time import perf_counter
 import json
@@ -284,6 +285,7 @@ def run_fit(
         )
 
     region_templates = {}
+    run_rows = []
     for region_name in region_ids:
         region_t0 = perf_counter()
         log.info("[REGION:%s] start", region_name)
@@ -329,7 +331,7 @@ def run_fit(
                 fisher_result[n] = s
 
             pv = ParamVector(param_names)
-            write_fisher_region_products(
+            fisher_summary = write_fisher_region_products(
                 out_run_dir=out_run_dir,
                 run_name_tag=run_name,
                 region_name=region_name,
@@ -340,6 +342,17 @@ def run_fit(
                 params0=param0,
                 param_vector=pv,
             )
+            run_rows.append({
+                "run_id": run_name,
+                "region": region_name,
+                "mode": "fisher",
+                "chi2": "",
+                "red_chi2": "",
+                "AIC": "",
+                "BIC": "",
+                **{f"sigma_{k}": v for k, v in fisher_result.items()},
+                **{f"fid_{k}": v for k, v in params_fid.items() if not k.startswith("cal_")},
+            })
             log.info("[REGION:%s][MODE:FISHER] done in %.2fs", region_name, perf_counter() - fisher_t0)
 
         if run_mcmc:
@@ -348,7 +361,7 @@ def run_fit(
 
             pv = ParamVector(result.param_names)
 
-            write_region_products(
+            mcmc_summary = write_region_products(
                 out_run_dir=out_run_dir,
                 run_name_tag=run_name,
                 region_name=region_name,
@@ -361,6 +374,16 @@ def run_fit(
                 nside=None,                      
                 make_healpix_maps=False,       
             )
+            run_rows.append({
+                "run_id": run_name,
+                "region": region_name,
+                "mode": "mcmc",
+                "chi2": mcmc_summary.get("chi2", ""),
+                "red_chi2": mcmc_summary.get("red_chi2", ""),
+                "AIC": mcmc_summary.get("AIC", ""),
+                "BIC": mcmc_summary.get("BIC", ""),
+                **{f"best_{k}": v for k, v in mcmc_summary.get("best_params", {}).items() if not k.startswith("cal_")},
+            })
             log.info("[REGION:%s][MODE:MCMC] done in %.2fs", region_name, perf_counter() - mcmc_t0)
 
         if run_postprocess:

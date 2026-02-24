@@ -249,3 +249,290 @@ cbass_spass:
   stokes: ["I","Q","U"]
   pol_convention: "COSMO"
   calerr: 0.03
+
+litebird_LFT_L1-040:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L1-040_var_IQU_nside016.fits
+  freq_ghz: 40.0
+  fwhm_arcmin: 70.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L2-050:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L2-050_var_IQU_nside016.fits
+  freq_ghz: 50.0
+  fwhm_arcmin: 58.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L1-060:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L1-060_var_IQU_nside016.fits
+  freq_ghz: 60.0
+  fwhm_arcmin: 51.1
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L3-068:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L3-068_var_IQU_nside016.fits
+  freq_ghz: 68.0
+  fwhm_arcmin: 41.6
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L2-068:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L2-068_var_IQU_nside016.fits
+  freq_ghz: 68.0
+  fwhm_arcmin: 47.1
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L4-078:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L4-078_var_IQU_nside016.fits
+  freq_ghz: 78.0
+  fwhm_arcmin: 36.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L1-078:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L1-078_var_IQU_nside016.fits
+  freq_ghz: 78.0
+  fwhm_arcmin: 43.8
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L3-089:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L3-089_var_IQU_nside016.fits
+  freq_ghz: 89.0
+  fwhm_arcmin: 33.0
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L2-089:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L2-089_var_IQU_nside016.fits
+  freq_ghz: 89.0
+  fwhm_arcmin: 41.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L4-100:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L4-100_var_IQU_nside016.fits
+  freq_ghz: 100.0
+  fwhm_arcmin: 30.2
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L3-119:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L3-119_var_IQU_nside016.fits
+  freq_ghz: 119.0
+  fwhm_arcmin: 26.3
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_LFT_L4-140:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_LFT_L4-140_var_IQU_nside016.fits
+  freq_ghz: 140.0
+  fwhm_arcmin: 23.7
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M1-100:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M1-100_var_IQU_nside016.fits
+  freq_ghz: 100.0
+  fwhm_arcmin: 37.8
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M2-119:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M2-119_var_IQU_nside016.fits
+  freq_ghz: 119.0
+  fwhm_arcmin: 33.6
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M1-140:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M1-140_var_IQU_nside016.fits
+  freq_ghz: 140.0
+  fwhm_arcmin: 30.8
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M2-166:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M2-166_var_IQU_nside016.fits
+  freq_ghz: 166.0
+  fwhm_arcmin: 28.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_MFT_M1-195:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_MFT_M1-195_var_IQU_nside016.fits
+  freq_ghz: 195.0
+  fwhm_arcmin: 28.0
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H1-195:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H1-195_var_IQU_nside016.fits
+  freq_ghz: 195.0
+  fwhm_arcmin: 28.6
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H2-235:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H2-235_var_IQU_nside016.fits
+  freq_ghz: 235.0
+  fwhm_arcmin: 24.7
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H1-280:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H1-280_var_IQU_nside016.fits
+  freq_ghz: 280.0
+  fwhm_arcmin: 22.5
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H2-337:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H2-337_var_IQU_nside016.fits
+  freq_ghz: 337.0
+  fwhm_arcmin: 20.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
+litebird_HFT_H3-402:
+  filename: data/litebird_hitmaps/maps_ptep_ns0016/LiteBIRD_HFT_H3-402_var_IQU_nside016.fits
+  freq_ghz: 402.0
+  fwhm_arcmin: 17.9
+  read_class: LiteBIRDSimPTEPReader
+  coord: G
+  unit: K_RJ
+  stokes:
+  - I
+  - Q
+  - U
+  pol_convention: COSMO
+  calerr: 0.01
