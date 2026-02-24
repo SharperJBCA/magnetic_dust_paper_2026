@@ -240,16 +240,16 @@ def fisher(
 
 @app.command("fisher-grid")
 def fisher_grid(
-    grid_manifest: Path = typer.Option(..., "--grid-manifest", help="JSON manifest describing grid jobs and parameter values."),
+    grid_manifest: Path = typer.Option(..., "--grid-manifest", help="JSON manifest or grid workflow YAML."),
     sims_cfg: Path = typer.Option(Path("configs/simulations/simulations.yaml"), "--sims-config", "-s"),
     fitter_cfg: Path = typer.Option(Path("configs/fitting/fitter.yaml"), "--fisher-config", "-c"),
     data: Path = typer.Option(Path("configs/fitting/data.yaml"), "--data", "-d"),
     templates: Path = typer.Option(Path("configs/templates/templates.yaml"), "--templates", "-t"),
     tag: str = typer.Option("v001"),
     grid_tag: str = typer.Option("fisher_grid", help="Subdirectory under fits output to store all grid runs."),
-    x_param: str = typer.Option(..., "--x-param"),
-    y_param: str = typer.Option(..., "--y-param"),
-    region: str = typer.Option(..., "--region"),
+    x_param: Optional[str] = typer.Option(None, "--x-param"),
+    y_param: Optional[str] = typer.Option(None, "--y-param"),
+    region: Optional[str] = typer.Option(None, "--region"),
     dataset_set: List[str] = typer.Option(["baseline", "baseline_plus_litebird"], "--dataset-set", help="Dataset set names to aggregate."),
     regions_h5: Optional[Path] = typer.Option(None),
     processed_h5: Optional[Path] = typer.Option(None),
@@ -259,6 +259,33 @@ def fisher_grid(
     overwrite: bool = typer.Option(False),
     dry_run: bool = typer.Option(False),
 ) -> None:
+    if grid_manifest.suffix.lower() in {".yaml", ".yml"}:
+        cfg = load_yaml(grid_manifest)
+        grid_cfg = dict(cfg.get("grid", {}))
+        x_param = x_param or grid_cfg.get("x_param")
+        y_param = y_param or grid_cfg.get("y_param")
+        region = region or grid_cfg.get("region")
+
+        if x_param is None or y_param is None or region is None:
+            raise typer.BadParameter(
+                "When --grid-manifest points to YAML, define x_param/y_param/region in grid section "
+                "or pass explicit --x-param/--y-param/--region overrides."
+            )
+
+        run_fisher_grid_from_yaml(
+            grid_yaml=grid_manifest,
+            tag=tag,
+            out_dir=out_dir,
+            regions_h5=regions_h5,
+            processed_h5=processed_h5,
+            overwrite=overwrite,
+            dry_run=dry_run,
+        )
+        return
+
+    if x_param is None or y_param is None or region is None:
+        raise typer.BadParameter("--x-param, --y-param and --region are required when using a JSON grid manifest.")
+
     outdir = out_dir or _default_fits_dir(tag)
     regions_path = regions_h5 or _default_regions_h5(tag)
     processed_path = processed_h5 or _default_processed_h5(tag)
