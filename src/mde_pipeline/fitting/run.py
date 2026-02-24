@@ -124,6 +124,21 @@ def _resolve_target_entries(
 
     return resolved
 
+
+def _resolve_fit_stokes(fitter_info: Dict[str, Any]) -> List[str]:
+    requested = fitter_info.get("stokes_fit", ["I", "Q", "U"])
+    if isinstance(requested, str):
+        requested = [requested]
+
+    allowed = {"I", "Q", "U"}
+    stokes = [str(s).upper() for s in requested]
+    if not stokes:
+        raise ValueError("fitter.stokes_fit cannot be empty")
+    invalid = [s for s in stokes if s not in allowed]
+    if invalid:
+        raise ValueError(f"Invalid stokes in fitter.stokes_fit: {invalid}. Allowed: {sorted(allowed)}")
+    return stokes
+
 def regen_region_products_from_npz(
     samples_npz: Path,
     out_run_dir: Path,
@@ -206,6 +221,7 @@ def run_fit(
     run_postprocess = bool(mode_cfg.get("run_postprocess", False))
     validation_cfg = fitter_info.get("validation", {})
     run_validation = bool(validation_cfg.get("enabled", False))
+    fit_stokes = _resolve_fit_stokes(fitter_info)
 
     if not any([run_fisher, run_mcmc, run_postprocess, run_validation]):
         raise ValueError("No fitting mode enabled. Set at least one of run_fisher/run_mcmc/run_postprocess.")
@@ -292,7 +308,7 @@ def run_fit(
         pixels = regions.get_pixels(region_name)
 
         fitdata = FitData.create_from_dict( {map_name:v.slice_map(v,pixels) for map_name, v in maps.items()},
-                                           ["I","Q","U"],
+                                           fit_stokes,
                                            pixels)
         for j, map_name in enumerate(fitdata.map_names):
             resolved_calerr = resolved_targets[map_name]["calerr"]
@@ -300,7 +316,7 @@ def run_fit(
                 fitdata.calerror[j] = resolved_calerr
 
         region_templates[region_name] = {template_name:v.slice_template(v,pixels) for template_name, v in templates.items()}
-        model = Model(components, region_templates[region_name], stokes_order=['I','Q','U'])
+        model = Model(components, region_templates[region_name], stokes_order=fit_stokes)
 
         # ---- Fisher sanity check (before MCMC) ----
         # Build fiducial params dict including gains 
@@ -443,7 +459,7 @@ def run_fit(
                     pixels = regions.get_pixels(region_name)
                     fitdata = FitData.create_from_dict(
                         {map_name: v.slice_map(v, pixels) for map_name, v in grid_maps.items()},
-                        ["I", "Q", "U"],
+                        fit_stokes,
                         pixels,
                     )
                     for j, map_name in enumerate(fitdata.map_names):
@@ -452,7 +468,7 @@ def run_fit(
                             fitdata.calerror[j] = resolved_calerr
 
                     region_templates = {template_name: v.slice_template(v, pixels) for template_name, v in templates.items()}
-                    model = Model(components, region_templates, stokes_order=['I', 'Q', 'U'])
+                    model = Model(components, region_templates, stokes_order=fit_stokes)
 
                     param_names = list(param0.keys())
                     fisher = fisher_gain_marginalized(

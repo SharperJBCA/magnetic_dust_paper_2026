@@ -113,6 +113,64 @@ class ThermalDust(EmissionComponent):
         denom = np.expm1(x)
         return (2.0 * _H * nu_hz**3 / _C**2) / denom
 
+
+@register_component
+class ThermalDustCurved(EmissionComponent):
+    """
+    Thermal dust with logarithmic curvature in the emissivity index:
+
+        beta_d(nu) = beta_d + c * log(nu/nu0)
+
+    and SED scaling (relative to nu0):
+
+        s(nu) = (nu/nu0)^(beta_d(nu)-2) * B_nu(T_d) / B_nu0(T_d)
+
+    Setting c=0 recovers the standard modified-blackbody model used in ThermalDust.
+    """
+    stokes_out = ("I", "Q", "U")
+
+    def evaluate(self, nu_ghz, T, params, ctx=None):
+        A = params["A"]
+        beta_d = float(params["beta_d"])
+        c = float(params.get("c", 0.0))
+        T_d = float(params["T_d"])
+        nu0 = float(params["nu0_ghz"])
+
+        nu_hz = float(nu_ghz) * 1e9
+        nu0_hz = float(nu0) * 1e9
+
+        lratio = np.log(float(nu_ghz) / nu0)
+        beta_eff = beta_d + c * lratio
+        pl = (float(nu_ghz) / nu0) ** (beta_eff - 2.0)
+        bb = self._planck_Bnu(nu_hz, T_d) / self._planck_Bnu(nu0_hz, T_d)
+        s = pl * bb
+
+        I = _as_array(A, T.I) * T.I * s
+        out = {"I": I}
+
+        if T.m.has_pol:
+            out["Q"] = _as_array(A, T.Q) * T.Q * s
+            out["U"] = _as_array(A, T.U) * T.U * s
+        else:
+            z = np.zeros_like(I)
+            out["Q"], out["U"] = z, z
+
+        return out
+
+    def _planck_Bnu(self, nu_hz: float, T: float) -> float:
+        _H = 6.62607015e-34
+        _KB = 1.380649e-23
+        _C = 299792458.0
+
+        if nu_hz <= 0:
+            raise ValueError("nu_hz must be > 0")
+        if T <= 0:
+            raise ValueError("T must be > 0")
+
+        x = (_H * nu_hz) / (_KB * T)
+        denom = np.expm1(x)
+        return (2.0 * _H * nu_hz**3 / _C**2) / denom
+
 @register_component
 class FreeFree(EmissionComponent):
     """

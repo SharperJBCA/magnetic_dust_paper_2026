@@ -14,7 +14,7 @@ except Exception:
 
 from ..fitting.data_types import FitData, Model, build_components_from_yaml
 from ..fitting.fisher import fisher_gain_marginalized
-from ..fitting.run import _resolve_target_entries
+from ..fitting.run import _resolve_fit_stokes, _resolve_target_entries
 from ..io.maps_io import MapIO
 from ..io.regions_io import RegionsIO
 from ..templates.templates import load_templates_config
@@ -327,6 +327,7 @@ def run_fisher(
         region_ids = regions.region_names
 
     components, param0, _widths0, global_prior, _gain_params = build_components_from_yaml(fitter_info)
+    fit_stokes = _resolve_fit_stokes(fitter_info)
     param_names = list(param0.keys())
     md_params = _magnetic_dust_params(param_names)
     include_gain_params_in_corner = bool(fitter_info.get("include_gain_params_in_corner", False))
@@ -370,7 +371,7 @@ def run_fisher(
             pixels = regions.get_pixels(region_name)
             fitdata = FitData.create_from_dict(
                 {map_name: v.slice_map(v, pixels) for map_name, v in maps.items()},
-                ["I", "Q", "U"],
+                fit_stokes,
                 pixels,
             )
 
@@ -380,7 +381,7 @@ def run_fisher(
                     fitdata.calerror[j] = resolved_calerr
 
             region_templates = {tname: v.slice_template(v, pixels) for tname, v in templates.items()}
-            model = Model(components, region_templates, stokes_order=["I", "Q", "U"])
+            model = Model(components, region_templates, stokes_order=fit_stokes)
 
             F = fisher_gain_marginalized(
                 model=model,

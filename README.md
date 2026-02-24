@@ -147,7 +147,9 @@ How to modify behavior:
 - Edit `configs/fitting/fitter.yaml`:
   - `targets`
   - `components` and their `params_map`/`fixed_params`/`init`/`priors`
+  - optional fit-Stokes selection via `fitter.stokes_fit` (e.g. `["Q", "U"]` to exclude intensity)
   - optional mode block: `fitter.modes.run_fisher`, `run_mcmc`, `run_postprocess`
+  - optional curved thermal dust component `cls_name: ThermalDustCurved` with params `beta_d`, `T_d`, and curvature `c`
 
 ## `fisher` (standalone)
 
