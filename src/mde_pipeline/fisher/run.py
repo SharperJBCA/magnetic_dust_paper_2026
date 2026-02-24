@@ -234,6 +234,11 @@ def _write_fisher_sed_plots(
         total_draws = np.zeros((draws.shape[0], nu_plot.size), dtype=float)
 
         for ci, (spec, comp) in enumerate(model._comps):
+            stokes_out = tuple(getattr(comp, "stokes_out", ("I",)))
+            emits_polarization = ("Q" in stokes_out) or ("U" in stokes_out)
+            if mode == "P" and (not emits_polarization or spec.name == "spinningdust"):
+                continue
+
             template = model.templates[spec.template_name]
             comp_best = np.zeros_like(nu_plot)
             comp_input = np.zeros_like(nu_plot)
