@@ -84,6 +84,7 @@ def run_simulations(
     for target_name in cfg['targets']:
         target = mapio.read_map(target_name, )
         simulated_maps[target_name] = make_empty_like(target)
+
         for comp_cfg in cfg["components"]:
             cls = COMPONENTS[comp_cfg["class"]]
             comp = cls(name=comp_cfg["name"])
@@ -106,20 +107,20 @@ def run_simulations(
             for stokes, stoke_map in pred.items():
                 s = getattr(simulated_maps[target_name],stokes)
                 setattr(simulated_maps[target_name],stokes, s+stoke_map)
-        
-            if cfg['gain']['enabled']:
-                gains[target_name] = add_gain(simulated_maps[target_name])
-            if cfg['noise']['enabled']:
-                add_noise(simulated_maps[target_name])
 
-            mapio_out.write_map(simulated_maps[target_name])
+        if cfg['gain']['enabled']:
+            gains[target_name] = add_gain(simulated_maps[target_name])
+        if cfg['noise']['enabled']:
+            add_noise(simulated_maps[target_name])
 
-            if cfg['qc']['enabled']:
-                qc_plot_map(
-                    simulated_maps[target_name],
-                    cfg.get("qc",{}),
-                    out_dir=Path(f"products/qc/simulations/{sim_tag}") / target.map_id,
-                )
+        mapio_out.write_map(simulated_maps[target_name])
+
+        if cfg['qc']['enabled']:
+            qc_plot_map(
+                simulated_maps[target_name],
+                cfg.get("qc",{}),
+                out_dir=Path(f"products/qc/simulations/{sim_tag}") / target.map_id,
+            )
 
     with open(out_gain_file,'w') as outfile:
         json.dump(gains, outfile, sort_keys=False) 
