@@ -226,6 +226,7 @@ def run_fisher_grid_workflow(
 
         sim_cfg_obj.setdefault("simulations", {})["out_h5"] = str(sim_out_h5)
         fit_cfg_obj.setdefault("fitter", {})["sims_h5"] = str(sim_out_h5)
+        fit_cfg_obj.setdefault("fitter", {})["out_dir"] = str(out_dir)
         fit_cfg_obj.setdefault("fitter", {})["sims_tag"] = grid_tag
 
         sim_cfg_path = tmp_cfg_dir / f"{job_id}_sim.yaml"
