@@ -18,7 +18,8 @@ import h5py
 import healpy as hp
 import numpy as np
 import yaml
-
+import sys 
+from matplotlib import pyplot as plt
 
 DEFAULT_PROCESSED_H5 = Path("products/processed_maps/v001/processed_maps.h5")
 
@@ -36,6 +37,18 @@ def load_references(csv_path: Path) -> Dict[str, dict]:
             out[row["map_id"]] = row
     return out
 
+def dBdT_cmb_to_rj(nu_ghz: float) -> float:
+    """
+    Conversion factor: K_CMB -> K_RJ at frequency nu.
+    For small signals: T_RJ = T_CMB * (dB/dT)_CMB / (2 k nu^2 / c^2)
+    """
+    h  = 6.62607015e-34
+    kb = 1.380649e-23
+    T_cmb = 2.725
+
+    nu = nu_ghz * 1e9
+    x = h * nu / (kb * T_cmb)
+    return (x**2) * np.exp(x) / (np.exp(x) - 1.0)**2
 
 def unit_to_uK_factor(unit: str) -> float:
     u = (unit or "").strip().lower()
@@ -82,7 +95,9 @@ def derive_sensitivity_uK_arcmin_from_h5(
             raise KeyError(f"Field {field!r} missing for {map_id!r}")
 
         arr = grp[field][...]
-        unit = grp.attrs.get("unit", "")
+        unit = 'k'
+        freq = grp.attrs['freq_ghz']
+        arr /= dBdT_cmb_to_rj(freq)
         if isinstance(unit, bytes):
             unit = unit.decode("utf-8")
 

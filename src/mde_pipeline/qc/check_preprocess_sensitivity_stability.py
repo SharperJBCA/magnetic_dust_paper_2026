@@ -25,9 +25,9 @@ import healpy as hp
 import numpy as np
 import yaml
 
-from mde_pipeline.io import raw_maps_readers
-from mde_pipeline.preprocessing.beams import smooth_maps
-from mde_pipeline.preprocessing.units import dec_mask, fix_pol_convention, subtract_cmb, unit_convert
+from src.mde_pipeline.io import raw_maps_readers
+from src.mde_pipeline.preprocessing.beams import smooth_maps
+from src.mde_pipeline.preprocessing.units import dec_mask, fix_pol_convention, subtract_cmb, unit_convert
 
 
 OPS = {
