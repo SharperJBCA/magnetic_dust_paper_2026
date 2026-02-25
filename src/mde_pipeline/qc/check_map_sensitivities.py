@@ -17,7 +17,8 @@ import healpy as hp
 import numpy as np
 import yaml
 
-FIELD_INDEX = {"II": 0, "QQ": 1, "UU": 2}
+PR3_FIELD_INDEX = {"II": 0, "QQ": 3, "UU": 5}
+COSMO_FIELD_INDEX = {"II": 0, "QQ": 1, "UU": 2}
 
 
 def load_yaml(path: Path) -> dict:
@@ -65,8 +66,14 @@ def valid_pixels(arr: np.ndarray) -> np.ndarray:
     return np.isfinite(arr) & (arr > -1e20)
 
 
-def derive_sensitivity_uK_arcmin(filename: str, field: str, unit: str) -> Tuple[float, int, int]:
-    arr = hp.read_map(filename, field=FIELD_INDEX[field], verbose=False)
+def derive_sensitivity_uK_arcmin(filename: str, field: str, unit: str, map_id: str) -> Tuple[float, int, int]:
+    print(filename)
+    if 'pr3' in map_id:
+        arr = hp.read_map(filename, field=4+PR3_FIELD_INDEX[field], verbose=False)
+    elif 'cosmo' in map_id:
+        arr = hp.read_map(filename, field=3+COSMO_FIELD_INDEX[field], verbose=False)
+
+
     nside = hp.npix2nside(arr.size)
     good = valid_pixels(arr)
     if not np.any(good):
@@ -113,7 +120,7 @@ def main() -> None:
             continue
 
         try:
-            derived, _, _ = derive_sensitivity_uK_arcmin(filename, args.field, meta.get("unit", ""))
+            derived, _, _ = derive_sensitivity_uK_arcmin(filename, args.field, meta.get("unit", ""), map_id)
         except Exception:
             print(f"{map_id:30s} {args.field:4s} {'-':>16s} {'-':>12s} {'-':>10s} {'ERROR':>8s}")
             continue
