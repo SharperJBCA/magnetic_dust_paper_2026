@@ -330,3 +330,24 @@ This CSV includes, per region/mode row:
 - fiducial parameter values (`fid_<param>`) and best-fit values (`best_<param>`)
 
 This makes it straightforward to merge baseline and baseline+LiteBIRD runs and compare fit quality and MDE detectability in one table.
+
+## 10) Sensitivity sanity-check from variance maps
+
+To validate simulated map noise levels against reference instrument sensitivities (in \(\mu\mathrm{K}\cdot\)arcmin), use:
+
+```bash
+python src/mde_pipeline/qc/check_map_sensitivities.py --family litebird --field QQ
+python src/mde_pipeline/qc/check_map_sensitivities.py --family planck --field QQ
+python src/mde_pipeline/qc/check_map_sensitivities.py --family wmap --field QQ
+```
+
+The script computes:
+
+\[
+\sigma = \sqrt{\mathrm{median}(\mathrm{variance})\,\Omega_{\rm pix}}
+\]
+
+with automatic unit conversion to \(\mu\mathrm{K}^2\), and compares against
+`configs/preprocessing/reference_sensitivities_uK_arcmin.csv`.
+
+Reference table documentation: `docs/sensitivity_reference_table.md`.
