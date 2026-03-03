@@ -261,21 +261,27 @@ class MagneticDustInclusions(EmissionComponent):
         A = np.exp(params["A"])
         chi0 = np.exp(params["chi0"])
         phi = self.sigmoid(params["phi"])
-        nu0 = params["nu0_ghz"]
+        nu0 = params.get("nu0_ghz",None)
         omega0_THz = np.exp(params["omega0_THz"])
 
         Td = params['Td']
         L_short = params['L_short']
         s,p = self.mde_inclusions_spectrum(nu_ghz, chi0, omega0_THz, phi, Td, L_short)
+        if isinstance(nu0,type(None)):
+            # okay, so this is not a smart way to do this but I can't think of anything else without changing lots of code
+            # in simulations.run and fitter.run and fisher.run
+            nu_ghz_array = np.logspace(0,3,1000)
+            s_array,p_array = self.mde_inclusions_spectrum(nu_ghz_array, chi0, omega0_THz, phi, Td, L_short)
+            nu0 = nu_ghz_array[np.argmax(s_array)]
         s_norm = self.mde_inclusions_spectrum(nu0, chi0, omega0_THz, phi, Td, L_short)[0]
         s /= s_norm
 
-        I = _as_array(A, T.I) * T.I * s
+        I = A * T.I * s
         out = {"I": I}
 
         if T.m.has_pol:
-            out["Q"] = _as_array(A, T.Q) * T.Q * s * p 
-            out["U"] = _as_array(A, T.U) * T.U * s * p
+            out["Q"] = A * T.Q * s * p 
+            out["U"] = A * T.U * s * p
         else:
             z = np.zeros_like(I)
             out["Q"], out["U"] = z, z

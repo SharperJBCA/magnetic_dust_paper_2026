@@ -162,6 +162,16 @@ class Model:
         # map stokes label -> axis index
         self._sidx = {s: i for i, s in enumerate(stokes_order)}
 
+    def set_fitdata(self, fitdata: FitData):
+        self.fitdata = fitdata 
+
+    def set_paramkeys(self, param_keys: List):
+        self.param_keys = param_keys
+
+    def __call__(self, params): # expect array of floats for DerivKit
+        params_dict = {k:v for k,v in zip(self.param_keys, params)}
+        return self.predict(self.fitdata, params_dict).flatten()
+
     def predict(self,  fitdata: FitData, params: Dict[str, float]) -> np.ndarray:
 
         nmaps = fitdata.frequencies_ghz.size
@@ -172,7 +182,6 @@ class Model:
 
 
         for spec, comp in self._comps:
-
             comp_params = dict(spec.fixed_params)
             comp_params.update({arg: params[name] for arg, name in spec.params_map.items() if name in params})
 
@@ -184,7 +193,6 @@ class Model:
                     if s not in out:
                         continue
                     pred[i, self._sidx[s]*npix:(self._sidx[s]+1)*npix] += out[s]
-
         # Now add the gain parameters - we are going to do this in the likelihood
                     # we will marginalize out the gains, not sample them
         for j, map_name in enumerate(fitdata.map_names):

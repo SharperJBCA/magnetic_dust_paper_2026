@@ -3,7 +3,7 @@ simulations:
   seed: 12345
 
   processed_h5: "products/processed_maps/v001/processed_maps.h5"
-  out_h5: "products/simulations/v001_sytdffspmd02/simulations.h5"
+  out_h5: "products/simulations/v002_sytdffspmd/simulations.h5"
 
   # Which map_ids to produce sims for (these must exist as groups in data_h5)
   targets:
@@ -119,10 +119,10 @@ simulations:
       stokes: ['I','Q','U']
       template: dust_base
       params:
-        A: -2.3 # 0.1 # amplitude in K rms at nu0
+        A: 0.0 # -2.3 # 0.1 # amplitude in K rms at nu0
         chi0: 1.19 #np.log(3.3)
         phi: -3.45 #0.03 # inclusions fraction
-        nu0_ghz: 70.0 # normalisation frequency
+        # nu0_ghz: 70.0 # normalisation frequency (if not included, it assumed the peak is the normalisation frequency)
         omega0_THz: -0.69 #0.5
         Td: 20.0
         L_short: 0.5272003

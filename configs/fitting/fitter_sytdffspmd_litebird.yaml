@@ -1,7 +1,7 @@
 fitter:
   sims_h5: "/scratch/nas_cbassarc/sharper/work/CBASS_MagneticDust/magnetic_dust_paper_2026/suites/suite_litebird_plwp_run01_batch15/j0000_A0.1_phi0.03/products/simulations/j0000_A0.1_phi0.03_r0000/simulations.h5"
-  processed_h5: "products/processed_maps/v001/processed_maps.h5"
-  sims_tag: "v001_sytdffspmd03"
+  processed_h5: "products/simulations/v002_sytdffspmd/simulations.h5"
+  sims_tag: "v002_sytdffspmd"
   out_dir: "products/fits"
   
   dataset_sets:
@@ -250,7 +250,7 @@ fitter:
       priors:
         - type: normal
           params:
-            cal_cbass_spass: [1.0, 0.03]
+            cal_cbass_spass: [1.0, 0.903]
 
 
 
@@ -378,17 +378,19 @@ fitter:
         chi0: chi0
         omega0_THz: omega0_THz
         phi: phi
+        nu0_ghz: nu0_ghz_md
       fixed_params:
-        nu0_ghz: 70.0
+        #nu0_ghz: 70.0
         L_short: 0.5272003
         Td: 20.0
         #phi: -3.45
         #chi0: 1.19
       init:
-        A: [-2.3,0.05] # 0.1, 0.01]
+        A: [1,0.05] #[-2.3,0.05] # 0.1, 0.01]
         chi0: [ 1.19,0.03] # np.log(3.3)
         phi: [-3.45,0.03]
         omega0_THz: [-0.69,0.05]
+        nu0_ghz: [111.0, 30]
       priors:
         - type: bounds
           params:
@@ -396,6 +398,7 @@ fitter:
             chi0: [-20,20]
             phi: [-20,20]
             omega0_THz: [-10,10]
+            nu0_ghz: [0, 1000]
         - type: normal
           params:
             omega0_THz: [-0.69,1]

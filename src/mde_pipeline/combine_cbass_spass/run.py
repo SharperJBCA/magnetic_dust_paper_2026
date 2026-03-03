@@ -55,7 +55,12 @@ def run_combine_cbass_spass(
 
     if dry_run: 
         return 
-    final_map = combine_cbass_spass(combine_info, readers[cbass_id], readers[spass_id])
+    final_map, cbass, spass = combine_cbass_spass(combine_info, readers[cbass_id], readers[spass_id])
 
     os.makedirs(out_fits.parent, exist_ok=True)
     hp.write_map(out_fits,[final_map.I,final_map.Q,final_map.U,final_map.II,final_map.QQ,final_map.UU],overwrite=overwrite)
+
+    cbass_fits = out_fits.parent / 'cbass_only.fits'
+    spass_fits = out_fits.parent / 'spass_only.fits'
+    hp.write_map(cbass_fits,[cbass.I,cbass.Q,cbass.U,cbass.II,cbass.QQ,cbass.UU],overwrite=overwrite)
+    hp.write_map(spass_fits,[spass.I,spass.Q,spass.U,spass.II,spass.QQ,spass.UU],overwrite=overwrite)

@@ -126,4 +126,4 @@ def combine_cbass_spass(combine_info: Dict, cbass_reader: BaseReader, spass_read
     # now we combine the cbass and spass map using a taper
     final_map = tapered_combine(cbass_reader.map, naive_map) 
 
-    return  final_map
+    return  final_map, cbass_reader.map, naive_map
