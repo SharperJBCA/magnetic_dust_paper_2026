@@ -555,6 +555,22 @@ def run_fisher(
                 #labels=param_labels,
                 name_tag="Fisher forecast",
             )
+
+            idx = np.where([p == 'A_md' for p in param_names])[0][0]
+            A_md = np.exp(samples[:,idx])
+            psig_neg, psig_pos = np.percentile(A_md,18), np.percentile(A_md,82) 
+            stddev = psig_pos - psig_neg 
+            print(np.nanmedian(A_md), psig_neg, psig_pos, stddev)
+            print(samples.shape)
+            idx = np.where([p == 'cal_cbass_spass' for p in param_names])[0][0]
+
+            samples = np.random.multivariate_normal(mean=theta0[:not_gains], cov=cov_theta[:not_gains,:not_gains], size=nsamp)
+
+            A_md = samples[:,idx]
+            psig_neg, psig_pos = np.percentile(A_md,18), np.percentile(A_md,82) 
+            stddev = psig_pos - psig_neg 
+            print('CBASS CAL', np.nanmedian(A_md), psig_neg, psig_pos, stddev)
+
             dk_blue = "#3b9ab2"
             dk_red = "#f21901"
             line_width = 1.5

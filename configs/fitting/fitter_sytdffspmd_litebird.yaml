@@ -378,7 +378,7 @@ fitter:
         chi0: chi0
         omega0_THz: omega0_THz
         phi: phi
-        nu0_ghz: nu0_ghz_md
+        #nu0_ghz: nu0_ghz_md
       fixed_params:
         #nu0_ghz: 70.0
         L_short: 0.5272003
@@ -386,11 +386,11 @@ fitter:
         #phi: -3.45
         #chi0: 1.19
       init:
-        A: [1,0.05] #[-2.3,0.05] # 0.1, 0.01]
+        A: [-1,0.05] #[-2.3,0.05] # 0.1, 0.01]
         chi0: [ 1.19,0.03] # np.log(3.3)
         phi: [-3.45,0.03]
         omega0_THz: [-0.69,0.05]
-        nu0_ghz: [111.0, 30]
+        #nu0_ghz: [111.0, 30]
       priors:
         - type: bounds
           params:
@@ -398,7 +398,7 @@ fitter:
             chi0: [-20,20]
             phi: [-20,20]
             omega0_THz: [-10,10]
-            nu0_ghz: [0, 1000]
+            #nu0_ghz: [0, 1000]
         - type: normal
           params:
             omega0_THz: [-0.69,1]
