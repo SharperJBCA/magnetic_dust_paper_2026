@@ -17,6 +17,14 @@ from ..utils.logging import get_logger
 log = get_logger(__name__)
 
 
+_GAIN_GROUP_PREFIXES = {
+    "planck": "planck",
+    "wmap": "wmap",
+    "litebird": "litebird",
+    "cbass": "cbass",
+}
+
+
 def _deep_update(base: Dict[str, Any], patch: Dict[str, Any]) -> Dict[str, Any]:
     out = copy.deepcopy(base)
     for key, value in patch.items():
@@ -88,6 +96,40 @@ def _filter_component_lists(
         ]
 
 
+def _apply_gain_error_group_overrides(fitter_cfg: Dict[str, Any], gain_error_groups: Optional[Dict[str, Any]]) -> None:
+    if not gain_error_groups:
+        return
+
+    gains = fitter_cfg.setdefault("fitter", {}).get("gains", [])
+    if not gains:
+        return
+
+    normalized_groups: Dict[str, float] = {}
+    for group_name, sigma in gain_error_groups.items():
+        key = str(group_name).lower()
+        if key in _GAIN_GROUP_PREFIXES:
+            normalized_groups[key] = float(sigma)
+
+    for gain in gains:
+        gain_name = str(gain.get("name", "")).lower()
+        matching_sigma = None
+        for group_key, prefix in _GAIN_GROUP_PREFIXES.items():
+            if gain_name.startswith(prefix) and group_key in normalized_groups:
+                matching_sigma = normalized_groups[group_key]
+                break
+
+        if matching_sigma is None:
+            continue
+
+        for prior in gain.get("priors", []):
+            if str(prior.get("type", "")).lower() != "normal":
+                continue
+            params = prior.get("params", {})
+            for param_values in params.values():
+                if isinstance(param_values, list) and len(param_values) >= 2:
+                    param_values[1] = matching_sigma
+
+
 def _build_jobs_from_grid_section(cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
     grid = dict(cfg.get("grid", {}))
     parameters = list(grid.get("parameters", []))
@@ -118,6 +160,8 @@ def run_fisher_grid_from_yaml(
     cfg = load_yaml(grid_yaml)
     workflow = dict(cfg.get("workflow", {}))
     grid = dict(cfg.get("grid", {}))
+    gain_error_groups = dict(cfg.get("model", {}).get("gain_error_groups", {}))
+    gain_error_groups = _deep_update(gain_error_groups, dict(grid.get("gain_error_groups", {})))
 
     jobs = _normalize_jobs(cfg) if cfg.get("jobs") is not None else _build_jobs_from_grid_section(cfg)
     if not jobs:
@@ -144,6 +188,7 @@ def run_fisher_grid_from_yaml(
         use_physical_amplitude=bool(grid.get("use_physical_amplitude", False)),
         include_ratio_panel=bool(grid.get("include_ratio_panel", True)),
         model_cfg=dict(cfg.get("model", {})),
+        gain_error_groups=gain_error_groups,
         grid_parameters=list(grid.get("parameters", [])),
         reuse_simulation_h5=workflow.get("reuse_simulation_h5"),
         skip_simulations=bool(workflow.get("skip_simulations", False)),
@@ -169,6 +214,7 @@ def run_fisher_grid_workflow(
     use_physical_amplitude: bool = False,
     include_ratio_panel: bool = True,
     model_cfg: Optional[Dict[str, Any]] = None,
+    gain_error_groups: Optional[Dict[str, Any]] = None,
     grid_parameters: Optional[List[Dict[str, Any]]] = None,
     reuse_simulation_h5: Optional[Path] = None,
     skip_simulations: bool = False,
@@ -203,6 +249,8 @@ def run_fisher_grid_workflow(
 
         sim_cfg_obj = _deep_update(base_sim_cfg, sim_overrides)
         fit_cfg_obj = _deep_update(base_fit_cfg, fitter_overrides)
+
+        _apply_gain_error_group_overrides(fit_cfg_obj, gain_error_groups)
 
         _filter_component_lists(
             sim_cfg_obj,
