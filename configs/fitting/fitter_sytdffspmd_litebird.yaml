@@ -109,6 +109,182 @@ fitter:
     - cbass_spass
 
   gains:
+    - name: litebird_HFT_H1-195
+      param: cal_litebird_HFT_H1-195
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_HFT_H1-195: [1.0, 0.01]
+
+    - name: litebird_HFT_H1-280
+      param: cal_litebird_HFT_H1-280
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_HFT_H1-280: [1.0, 0.01]
+
+    - name: litebird_HFT_H2-235
+      param: cal_litebird_HFT_H2-235
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_HFT_H2-235: [1.0, 0.01]
+
+    - name: litebird_HFT_H2-337
+      param: cal_litebird_HFT_H2-337
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_HFT_H2-337: [1.0, 0.01]
+
+    - name: litebird_HFT_H3-402
+      param: cal_litebird_HFT_H3-402
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_HFT_H3-402: [1.0, 0.01]
+
+    - name: litebird_LFT_L1-040
+      param: cal_litebird_LFT_L1-040
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L1-040: [1.0, 0.01]
+
+    - name: litebird_LFT_L1-060
+      param: cal_litebird_LFT_L1-060
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L1-060: [1.0, 0.01]
+
+    - name: litebird_LFT_L1-078
+      param: cal_litebird_LFT_L1-078
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L1-078: [1.0, 0.01]
+
+    - name: litebird_LFT_L2-050
+      param: cal_litebird_LFT_L2-050
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L2-050: [1.0, 0.01]
+
+    - name: litebird_LFT_L2-068
+      param: cal_litebird_LFT_L2-068
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L2-068: [1.0, 0.01]
+
+    - name: litebird_LFT_L2-089
+      param: cal_litebird_LFT_L2-089
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L2-089: [1.0, 0.01]
+
+    - name: litebird_LFT_L3-068
+      param: cal_litebird_LFT_L3-068
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L3-068: [1.0, 0.01]
+
+    - name: litebird_LFT_L3-089
+      param: cal_litebird_LFT_L3-089
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L3-089: [1.0, 0.01]
+
+    - name: litebird_LFT_L3-119
+      param: cal_litebird_LFT_L3-119
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L3-119: [1.0, 0.01]
+
+    - name: litebird_LFT_L4-078
+      param: cal_litebird_LFT_L4-078
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L4-078: [1.0, 0.01]
+
+    - name: litebird_LFT_L4-100
+      param: cal_litebird_LFT_L4-100
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L4-100: [1.0, 0.01]
+
+    - name: litebird_LFT_L4-140
+      param: cal_litebird_LFT_L4-140
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_LFT_L4-140: [1.0, 0.01]
+
+    - name: litebird_MFT_M1-100
+      param: cal_litebird_MFT_M1-100
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_MFT_M1-100: [1.0, 0.01]
+
+    - name: litebird_MFT_M1-140
+      param: cal_litebird_MFT_M1-140
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_MFT_M1-140: [1.0, 0.01]
+
+    - name: litebird_MFT_M1-195
+      param: cal_litebird_MFT_M1-195
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_MFT_M1-195: [1.0, 0.01]
+
+    - name: litebird_MFT_M2-119
+      param: cal_litebird_MFT_M2-119
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_MFT_M2-119: [1.0, 0.01]
+
+    - name: litebird_MFT_M2-166
+      param: cal_litebird_MFT_M2-166
+      init: 1.0
+      priors:
+        - type: normal
+          params:
+            cal_litebird_MFT_M2-166: [1.0, 0.01]
+
     - name: planck353_pr3
       param: cal_planck353_pr3
       init: 1.0
