@@ -145,6 +145,8 @@ def run_fisher_grid_from_yaml(
         include_ratio_panel=bool(grid.get("include_ratio_panel", True)),
         model_cfg=dict(cfg.get("model", {})),
         grid_parameters=list(grid.get("parameters", [])),
+        reuse_simulation_h5=workflow.get("reuse_simulation_h5"),
+        skip_simulations=bool(workflow.get("skip_simulations", False)),
         overwrite=overwrite,
         dry_run=dry_run,
     )
@@ -168,6 +170,8 @@ def run_fisher_grid_workflow(
     include_ratio_panel: bool = True,
     model_cfg: Optional[Dict[str, Any]] = None,
     grid_parameters: Optional[List[Dict[str, Any]]] = None,
+    reuse_simulation_h5: Optional[Path] = None,
+    skip_simulations: bool = False,
     overwrite: bool = False,
     dry_run: bool = False,
 ) -> Path:
@@ -179,6 +183,8 @@ def run_fisher_grid_workflow(
     base_sim_cfg = load_yaml(sims_cfg)
     base_fit_cfg = load_yaml(fitter_cfg)
     model_cfg = model_cfg or {}
+    shared_sims_h5 = Path(reuse_simulation_h5) if reuse_simulation_h5 is not None else None
+    should_run_simulations = not skip_simulations and shared_sims_h5 is None
     parameter_lookup = {str(p.get("name")): p for p in (grid_parameters or [])}
 
     runs_root = Path(out_dir) / grid_tag
@@ -221,8 +227,9 @@ def run_fisher_grid_workflow(
             if fit_param:
                 _set_fitter_param(fit_cfg_obj, str(fit_param), float(p_val))
 
-        sim_out_h5 = runs_root / run_name / "products" / "simulations" / "simulations.h5"
-        sim_out_h5.parent.mkdir(parents=True, exist_ok=True)
+        sim_out_h5 = shared_sims_h5 or (runs_root / run_name / "products" / "simulations" / "simulations.h5")
+        if should_run_simulations:
+            sim_out_h5.parent.mkdir(parents=True, exist_ok=True)
 
         sim_cfg_obj.setdefault("simulations", {})["out_h5"] = str(sim_out_h5)
         fit_cfg_obj.setdefault("fitter", {})["sims_h5"] = str(sim_out_h5)
@@ -234,8 +241,9 @@ def run_fisher_grid_workflow(
         sim_cfg_path.write_text(yaml.safe_dump(sim_cfg_obj, sort_keys=False))
         fit_cfg_path.write_text(yaml.safe_dump(fit_cfg_obj, sort_keys=False))
 
-        log.info("[grid] running simulation for %s", job_id)
-        run_simulations(sim_cfg_path, overwrite=overwrite, dry_run=dry_run)
+        if should_run_simulations:
+            log.info("[grid] running simulation for %s", job_id)
+            run_simulations(sim_cfg_path, overwrite=overwrite, dry_run=dry_run)
 
         log.info("[grid] running fisher for %s", job_id)
         run_fisher(
