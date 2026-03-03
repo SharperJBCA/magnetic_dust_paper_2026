@@ -6,11 +6,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-try:
-    import corner
-except Exception:
-    corner = None
+from getdist import MCSamples
+from getdist import plots as getdist_plots
 
 from ..fitting.data_types import FitData, Model, build_components_from_yaml
 from ..fitting.fisher import fisher_gain_marginalized
@@ -78,9 +75,6 @@ def _write_fisher_region_products(
         sigma_1d=np.array([float(sigma_map[p]) for p in param_names], dtype=float),
     )
 
-    if corner is None:
-        return
-
     corner_names = list(param_names)
     if not include_gain_params_in_corner:
         corner_names = [p for p in corner_names if not p.startswith("cal_")]
@@ -89,16 +83,37 @@ def _write_fisher_region_products(
 
     means = np.array([float(params0[p]) for p in corner_names], dtype=float)
     idx = [param_names.index(p) for p in corner_names]
-    cov_plot = cov[np.ix_(idx, idx)]
+    cov_plot_base = np.asarray(cov[np.ix_(idx, idx)], dtype=float)
     draw_count = 3000
-    try:
-        samples = np.random.multivariate_normal(means, cov_plot, size=draw_count)
-    except np.linalg.LinAlgError:
+    rng = np.random.default_rng(0)
+
+    sample_draws: Optional[np.ndarray] = None
+    jitter_levels = [0.0, 1e-12, 1e-9, 1e-6]
+    for jitter in jitter_levels:
+        try:
+            cov_plot = cov_plot_base.copy()
+            if jitter > 0:
+                cov_plot = cov_plot + jitter * np.eye(cov_plot.shape[0], dtype=float)
+            sample_draws = rng.multivariate_normal(means, cov_plot, size=draw_count, check_valid="raise")
+            break
+        except (np.linalg.LinAlgError, ValueError):
+            try:
+                fisher_plot = np.linalg.pinv(cov_plot_base)
+                cov_plot_base = np.linalg.pinv(
+                    fisher_plot + max(jitter, 1e-12) * np.eye(fisher_plot.shape[0], dtype=float)
+                )
+            except np.linalg.LinAlgError:
+                continue
+
+    if sample_draws is None:
+        log.warning("Skipping Fisher corner plot: could not draw samples from covariance.")
         return
 
-    fig = corner.corner(samples, labels=corner_names, show_titles=True)
-    fig.savefig(reg_out / "corner.png", dpi=180)
-    plt.close(fig)
+    samples = MCSamples(samples=sample_draws, names=corner_names, labels=corner_names)
+    plotter = getdist_plots.get_subplot_plotter()
+    plotter.triangle_plot([samples], params=corner_names, filled=True)
+    plotter.fig.savefig(reg_out / "corner.png", dpi=180)
+    plt.close(plotter.fig)
 
 
 def _marker_for_map(map_name: str) -> str:
