@@ -4,7 +4,12 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from mde_pipeline.fisher.grid_workflow import _build_jobs_from_grid_section, _filter_component_lists
+from mde_pipeline.fisher.grid_workflow import (
+    _build_jobs_from_grid_section,
+    _filter_component_lists,
+    _filter_fitter_components_for_stokes_mode,
+    _set_fitter_param,
+)
 from mde_pipeline.fisher import grid_workflow
 import numpy as np
 
@@ -61,6 +66,85 @@ def test_filter_component_lists_supports_thermaldust_alias_for_sim_components():
     )
 
     assert [c["name"] for c in sim_cfg["simulations"]["components"]] == ["dust"]
+
+
+def test_filter_fitter_components_for_qu_mode_drops_intensity_only_components():
+    fit_cfg = {
+        "fitter": {
+            "components": [
+                {"name": "synchrotron", "stokes": ["I", "Q", "U"]},
+                {"name": "freefree", "stokes": ["I"]},
+                {"name": "spinningdust", "stokes": ["I"]},
+                {"name": "dust", "stokes": ["Q", "U"]},
+            ]
+        }
+    }
+
+    _filter_fitter_components_for_stokes_mode(fit_cfg, ["Q", "U"])
+
+    assert [c["name"] for c in fit_cfg["fitter"]["components"]] == ["synchrotron", "dust"]
+
+
+def test_filter_fitter_components_for_stokes_mode_defaults_to_iqu_when_missing_stokes():
+    fit_cfg = {
+        "fitter": {
+            "components": [
+                {"name": "legacy_component"},
+                {"name": "freefree", "stokes": ["I"]},
+            ]
+        }
+    }
+
+    _filter_fitter_components_for_stokes_mode(fit_cfg, ["Q", "U"])
+
+    assert [c["name"] for c in fit_cfg["fitter"]["components"]] == ["legacy_component"]
+
+
+def test_set_fitter_param_updates_mapped_global_parameter_only_for_target_component():
+    fit_cfg = {
+        "fitter": {
+            "components": [
+                {
+                    "name": "spinningdust",
+                    "params_map": {"A": "A_sd"},
+                    "init": {"A": [-0.69, 0.02]},
+                    "fixed_params": {},
+                },
+                {
+                    "name": "magneticdust",
+                    "params_map": {"A": "A_md", "omega0_THz": "omega0_THz"},
+                    "init": {"A": [-1.0, 0.05], "omega0_THz": [-0.69, 0.05]},
+                    "fixed_params": {},
+                },
+            ]
+        }
+    }
+
+    _set_fitter_param(fit_cfg, "A_md", -6.90775528)
+
+    spin_init = fit_cfg["fitter"]["components"][0]["init"]["A"]
+    md_init = fit_cfg["fitter"]["components"][1]["init"]["A"]
+    assert spin_init == [-0.69, 0.02]
+    assert md_init == [-6.90775528, 0.0]
+
+
+def test_set_fitter_param_keeps_backwards_compat_for_class_parameter_names():
+    fit_cfg = {
+        "fitter": {
+            "components": [
+                {
+                    "name": "spinningdust",
+                    "params_map": {"A": "A_sd"},
+                    "init": {"A": [-0.69, 0.02]},
+                    "fixed_params": {"nu0_ghz": 30.0},
+                },
+            ]
+        }
+    }
+
+    _set_fitter_param(fit_cfg, "A", -1.23)
+
+    assert fit_cfg["fitter"]["components"][0]["init"]["A"] == [-1.23, 0.0]
 
 
 def test_grid_workflow_overrides_fitter_out_dir(tmp_path, monkeypatch):

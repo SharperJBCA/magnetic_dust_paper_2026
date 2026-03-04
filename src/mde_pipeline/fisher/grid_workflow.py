@@ -84,8 +84,16 @@ def _set_fitter_param(fitter_cfg: Dict[str, Any], param_name: str, value: float)
             fixed[param_name] = float(value)
         if isinstance(init, dict) and param_name in init:
             init[param_name] = [float(value), 0.0]
-        if param_name in params_map.values():
-            fixed[param_name] = float(value)
+        # grid parameters are usually declared in global fitter space (e.g. A_md),
+        # while component init/fixed dictionaries are in class-parameter space (e.g. A).
+        # If there is a params_map match, update the mapped class parameter.
+        for class_param, global_param in params_map.items():
+            if str(global_param) != str(param_name):
+                continue
+            if isinstance(init, dict) and class_param in init:
+                init[class_param] = [float(value), 0.0]
+            if class_param in fixed:
+                fixed[class_param] = float(value)
 
 
 def _filter_component_lists(
@@ -198,6 +206,29 @@ def _normalize_stokes_modes(raw_modes: Optional[List[Any]]) -> List[List[str]]:
 
 def _stokes_mode_tag(mode: List[str]) -> str:
     return "".join(mode)
+
+
+def _filter_fitter_components_for_stokes_mode(fit_cfg: Dict[str, Any], mode: List[str]) -> None:
+    wanted = {str(s).upper() for s in mode}
+    fitter = fit_cfg.setdefault("fitter", {})
+    components = fitter.get("components", [])
+
+    filtered_components = []
+    dropped_components = []
+    for comp in components:
+        comp_stokes = [str(s).upper() for s in comp.get("stokes", ["I", "Q", "U"])]
+        if any(s in wanted for s in comp_stokes):
+            filtered_components.append(comp)
+        else:
+            dropped_components.append(str(comp.get("name", "<unknown>")))
+
+    fitter["components"] = filtered_components
+    if dropped_components:
+        log.info(
+            "[grid] stokes %s dropping fitter components with no supported stokes output: %s",
+            "".join(mode),
+            ", ".join(dropped_components),
+        )
 
 
 def _sigmoid(x: np.ndarray) -> np.ndarray:
@@ -538,6 +569,7 @@ def run_fisher_grid_workflow(
             mode_tag = _stokes_mode_tag(mode)
             run_name = f"{base_run_name}_mode{mode_tag}"
             mode_fit_cfg_obj = copy.deepcopy(fit_cfg_obj)
+            _filter_fitter_components_for_stokes_mode(mode_fit_cfg_obj, mode)
             mode_fit_cfg_obj.setdefault("fitter", {})["stokes_fit"] = list(mode)
             mode_fit_cfg_obj.setdefault("fitter", {})["out_dir"] = str(out_dir)
             mode_fit_cfg_obj.setdefault("fitter", {})["sims_tag"] = grid_tag
