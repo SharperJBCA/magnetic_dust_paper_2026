@@ -102,11 +102,7 @@ def test_grid_workflow_overrides_fitter_out_dir(tmp_path, monkeypatch):
         regions_h5=tmp_path / "regions.h5",
         processed_h5=tmp_path / "processed.h5",
         out_dir=out_dir,
-        grid_tag="grid_tag",
-        x_param="x",
-        y_param="y",
-        region="highlat1",
-        dataset_sets=["baseline"],
+        grid_cfg={"grid_tag": "grid_tag", "x_param": "x", "y_param": "y", "region": "highlat1", "dataset_sets": ["baseline"]},
     )
 
     assert captured["out_dir"] == str(out_dir)
@@ -160,11 +156,7 @@ def test_grid_workflow_reuses_simulation_h5_and_skips_simulations(tmp_path, monk
         regions_h5=tmp_path / "regions.h5",
         processed_h5=tmp_path / "processed.h5",
         out_dir=tmp_path / "products" / "fits" / "v001",
-        grid_tag="grid_tag",
-        x_param="x",
-        y_param="y",
-        region="highlat1",
-        dataset_sets=["baseline"],
+        grid_cfg={"grid_tag": "grid_tag", "x_param": "x", "y_param": "y", "region": "highlat1", "dataset_sets": ["baseline"]},
         reuse_simulation_h5=shared_sims,
         skip_simulations=True,
     )
@@ -204,6 +196,7 @@ def test_run_fisher_grid_from_yaml_forwards_reuse_flags(tmp_path, monkeypatch):
     def _fake_run_fisher_grid_workflow(**kwargs):
         captured["reuse"] = kwargs["reuse_simulation_h5"]
         captured["skip"] = kwargs["skip_simulations"]
+        captured["grid_cfg"] = kwargs["grid_cfg"]
         return tmp_path / "ok"
 
     monkeypatch.setattr(grid_workflow, "run_fisher_grid_workflow", _fake_run_fisher_grid_workflow)
@@ -218,3 +211,4 @@ def test_run_fisher_grid_from_yaml_forwards_reuse_flags(tmp_path, monkeypatch):
 
     assert captured["reuse"] == cli_reuse
     assert captured["skip"] is True
+    assert captured["grid_cfg"]["x_param"] == "x"
