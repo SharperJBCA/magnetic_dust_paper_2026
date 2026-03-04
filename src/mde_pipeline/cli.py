@@ -14,7 +14,7 @@ from src.mde_pipeline.cmb.run import run_smooth_cmb
 from src.mde_pipeline.regions.run import run_regions 
 from src.mde_pipeline.fitting.run import run_fit
 from src.mde_pipeline.fisher.run import run_fisher
-from src.mde_pipeline.fisher.grid_workflow import run_fisher_grid_from_yaml
+from src.mde_pipeline.fisher.grid_workflow import run_fisher_grid_from_yaml, make_fisher_overlay_corner_plot
 
 from src.mde_pipeline.utils.config import load_yaml
 from src.mde_pipeline.utils.paths import _ensure_parent, _default_fits_dir,_default_processed_h5,_default_regions_h5,_default_sims_h5,_default_combine_fits,_default_cmb_fits,_resolve_version_dir
@@ -287,6 +287,61 @@ def fisher_grid_config(
         skip_simulations=skip_simulations,
         overwrite=overwrite,
         dry_run=dry_run,
+    )
+
+
+@app.command("fisher-overlay-corner")
+def fisher_overlay_corner(
+    runs_root: Path = typer.Option(..., help="Root directory containing the per-run Fisher products."),
+    run_a: str = typer.Option(..., help="First run_name (e.g. j0000_modeIQU)."),
+    dataset_a: str = typer.Option(..., help="First dataset set (e.g. baseline)."),
+    run_b: str = typer.Option(..., help="Second run_name (e.g. j0000_modeQU)."),
+    dataset_b: str = typer.Option(..., help="Second dataset set (e.g. baseline_plus_litebird)."),
+    region: str = typer.Option(..., help="Region id to load (e.g. highlat1)."),
+    out_png: Path = typer.Option(..., help="Output PNG path for the overlay corner."),
+    param: Optional[List[str]] = typer.Option(None, "--param", help="Subset of parameters to plot (repeatable)."),
+    label: Optional[List[str]] = typer.Option(None, "--label", help="Pretty labels matching --param order (repeatable)."),
+    posterior_label: Optional[List[str]] = typer.Option(None, "--posterior-label", help="Legend labels for A and B (repeatable)."),
+    transform: Optional[List[str]] = typer.Option(
+        None,
+        "--transform",
+        help="Per-parameter transform mapping formatted as 'param=identity|exp|sigmoid' (repeatable).",
+    ),
+    true_value: Optional[List[str]] = typer.Option(
+        None,
+        "--true-value",
+        help="Marker value mapping formatted as 'param=value' in transformed/physical space (repeatable).",
+    ),
+    sample_count: int = typer.Option(5000, help="Number of Gaussian draws per posterior."),
+) -> None:
+    transform_map: Dict[str, str] = {}
+    for item in transform or []:
+        if "=" not in item:
+            raise typer.BadParameter(f"Invalid --transform '{item}', expected param=transform")
+        k, v = item.split("=", 1)
+        transform_map[k.strip()] = v.strip()
+
+    true_values_map: Dict[str, float] = {}
+    for item in true_value or []:
+        if "=" not in item:
+            raise typer.BadParameter(f"Invalid --true-value '{item}', expected param=value")
+        k, v = item.split("=", 1)
+        true_values_map[k.strip()] = float(v.strip())
+
+    make_fisher_overlay_corner_plot(
+        runs_root=runs_root,
+        run_name_a=run_a,
+        dataset_set_a=dataset_a,
+        run_name_b=run_b,
+        dataset_set_b=dataset_b,
+        region=region,
+        output_png=out_png,
+        params=param,
+        pretty_labels=label,
+        posterior_labels=posterior_label,
+        param_transforms=transform_map or None,
+        true_values=true_values_map or None,
+        sample_count=sample_count,
     )
 
 @app.command()

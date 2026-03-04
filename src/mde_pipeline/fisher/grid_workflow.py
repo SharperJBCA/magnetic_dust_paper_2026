@@ -9,6 +9,18 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
+try:
+    import matplotlib.pyplot as plt
+except ModuleNotFoundError:  # pragma: no cover - optional runtime dependency
+    plt = None
+
+try:
+    from getdist import MCSamples
+    from getdist import plots as getdist_plots
+except ModuleNotFoundError:  # pragma: no cover - optional runtime dependency
+    MCSamples = None
+    getdist_plots = None
+
 from ..fisher.grid_plots import save_grid_outputs
 from ..fisher.run import run_fisher
 from ..simulations.run import run_simulations
@@ -26,6 +38,13 @@ _GAIN_GROUP_PREFIXES = {
 }
 
 _DEFAULT_STOKES_MODES = [["I", "Q", "U"], ["Q", "U"]]
+
+_DEFAULT_PARAM_TRANSFORMS = {
+    "A_md": "exp",
+    "chi0": "exp",
+    "omega0_THz": "exp",
+    "phi": "sigmoid",
+}
 
 
 def _deep_update(base: Dict[str, Any], patch: Dict[str, Any]) -> Dict[str, Any]:
@@ -179,6 +198,145 @@ def _normalize_stokes_modes(raw_modes: Optional[List[Any]]) -> List[List[str]]:
 
 def _stokes_mode_tag(mode: List[str]) -> str:
     return "".join(mode)
+
+
+def _sigmoid(x: np.ndarray) -> np.ndarray:
+    import numpy as np
+
+    return 1.0 / (1.0 + np.exp(-x))
+
+
+def _apply_transform(values: np.ndarray, transform_name: str) -> np.ndarray:
+    import numpy as np
+
+    name = str(transform_name).strip().lower()
+    if name in {"identity", "none"}:
+        return values
+    if name in {"exp", "log_to_linear", "log"}:
+        return np.exp(values)
+    if name in {"sigmoid", "logit_to_linear", "logit"}:
+        return _sigmoid(values)
+    raise ValueError(f"Unsupported transform '{transform_name}'")
+
+
+def _load_fisher_region_products(summary_path: Path) -> Dict[str, Any]:
+    import numpy as np
+
+    if not summary_path.exists():
+        raise FileNotFoundError(f"Fisher products not found: {summary_path}")
+
+    with np.load(summary_path, allow_pickle=False) as payload:
+        names = [str(x) for x in payload["param_names"].tolist()]
+        means = np.array(payload["fiducial"], dtype=float)
+        cov = np.array(payload["covariance"], dtype=float)
+
+    if cov.ndim != 2 or cov.shape[0] != cov.shape[1]:
+        raise ValueError(f"Invalid covariance shape in {summary_path}: {cov.shape}")
+    if means.shape[0] != len(names) or cov.shape[0] != len(names):
+        raise ValueError(f"Inconsistent Fisher parameter dimensions in {summary_path}")
+
+    return {"names": names, "means": means, "cov": cov}
+
+
+def make_fisher_overlay_corner_plot(
+    *,
+    runs_root: Path,
+    run_name_a: str,
+    dataset_set_a: str,
+    run_name_b: str,
+    dataset_set_b: str,
+    region: str,
+    output_png: Path,
+    posterior_labels: Optional[List[str]] = None,
+    params: Optional[List[str]] = None,
+    pretty_labels: Optional[List[str]] = None,
+    param_transforms: Optional[Dict[str, str]] = None,
+    true_values: Optional[Dict[str, float]] = None,
+    sample_count: int = 5000,
+) -> Path:
+    """Build a single getdist corner plot overlaying two Fisher Gaussian posteriors.
+
+    Parameters are loaded from fisher_products.npz for each run + dataset set.
+    """
+
+    if MCSamples is None or getdist_plots is None or plt is None:
+        raise ModuleNotFoundError(
+            "make_fisher_overlay_corner_plot requires optional plotting dependencies: matplotlib and getdist"
+        )
+
+    path_a = runs_root / run_name_a / "fisher" / dataset_set_a / region / "fisher_products.npz"
+    path_b = runs_root / run_name_b / "fisher" / dataset_set_b / region / "fisher_products.npz"
+    prod_a = _load_fisher_region_products(path_a)
+    prod_b = _load_fisher_region_products(path_b)
+
+    names_a = prod_a["names"]
+    names_b = prod_b["names"]
+
+    if params is None:
+        params = [p for p in names_a if p in names_b and not p.startswith("cal_")]
+    else:
+        params = [str(p) for p in params]
+
+    if not params:
+        raise ValueError("No parameters available for overlay corner plot")
+
+    missing_a = [p for p in params if p not in names_a]
+    missing_b = [p for p in params if p not in names_b]
+    if missing_a or missing_b:
+        raise ValueError(f"Requested params missing: runA={missing_a}, runB={missing_b}")
+
+    if pretty_labels is not None and len(pretty_labels) != len(params):
+        raise ValueError("pretty_labels length must match selected params length")
+
+    labels = [str(x) for x in pretty_labels] if pretty_labels else [str(x) for x in params]
+    transforms = dict(_DEFAULT_PARAM_TRANSFORMS)
+    if param_transforms:
+        transforms.update({str(k): str(v) for k, v in param_transforms.items()})
+
+    idx_a = [names_a.index(p) for p in params]
+    idx_b = [names_b.index(p) for p in params]
+    means_a = np.asarray(prod_a["means"][idx_a], dtype=float)
+    means_b = np.asarray(prod_b["means"][idx_b], dtype=float)
+    cov_a = np.asarray(prod_a["cov"][np.ix_(idx_a, idx_a)], dtype=float)
+    cov_b = np.asarray(prod_b["cov"][np.ix_(idx_b, idx_b)], dtype=float)
+
+    rng = np.random.default_rng(0)
+    draws_a = rng.multivariate_normal(means_a, cov_a, size=int(sample_count))
+    draws_b = rng.multivariate_normal(means_b, cov_b, size=int(sample_count))
+
+    for i, pname in enumerate(params):
+        transform_name = transforms.get(pname, "identity")
+        draws_a[:, i] = _apply_transform(draws_a[:, i], transform_name)
+        draws_b[:, i] = _apply_transform(draws_b[:, i], transform_name)
+
+    sample_label_a = posterior_labels[0] if posterior_labels and len(posterior_labels) > 0 else f"{dataset_set_a}:{run_name_a}"
+    sample_label_b = posterior_labels[1] if posterior_labels and len(posterior_labels) > 1 else f"{dataset_set_b}:{run_name_b}"
+
+    mcs_a = MCSamples(samples=draws_a, names=params, labels=labels, label=sample_label_a)
+    mcs_b = MCSamples(samples=draws_b, names=params, labels=labels, label=sample_label_b)
+
+    markers: Dict[str, float] = {}
+    if true_values:
+        for pname in params:
+            if pname in true_values:
+                markers[pname] = float(true_values[pname])
+    else:
+        for i, pname in enumerate(params):
+            markers[pname] = float(_apply_transform(np.array([means_a[i]], dtype=float), transforms.get(pname, "identity"))[0])
+
+    plotter = getdist_plots.get_subplot_plotter()
+    plotter.triangle_plot(
+        [mcs_a, mcs_b],
+        params=params,
+        filled=True,
+        legend_labels=[sample_label_a, sample_label_b],
+        markers=markers,
+    )
+    output_png.parent.mkdir(parents=True, exist_ok=True)
+    plotter.fig.savefig(output_png, dpi=180, bbox_inches="tight")
+    plt.close(plotter.fig)
+    log.info("Saved Fisher overlay corner plot to %s", output_png)
+    return output_png
 
 
 def _build_snr_mode_comparison(
@@ -472,3 +630,4 @@ def run_fisher_grid_workflow(
                 )
 
     return grid_maps_dir
+    import numpy as np
