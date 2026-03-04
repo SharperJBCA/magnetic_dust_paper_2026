@@ -84,8 +84,16 @@ def _set_fitter_param(fitter_cfg: Dict[str, Any], param_name: str, value: float)
             fixed[param_name] = float(value)
         if isinstance(init, dict) and param_name in init:
             init[param_name] = [float(value), 0.0]
-        if param_name in params_map.values():
-            fixed[param_name] = float(value)
+        # grid parameters are usually declared in global fitter space (e.g. A_md),
+        # while component init/fixed dictionaries are in class-parameter space (e.g. A).
+        # If there is a params_map match, update the mapped class parameter.
+        for class_param, global_param in params_map.items():
+            if str(global_param) != str(param_name):
+                continue
+            if isinstance(init, dict) and class_param in init:
+                init[class_param] = [float(value), 0.0]
+            if class_param in fixed:
+                fixed[class_param] = float(value)
 
 
 def _filter_component_lists(
