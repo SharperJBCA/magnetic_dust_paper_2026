@@ -14,6 +14,7 @@ grid:
   y_param: chi0
   region: highlat1
   dataset_sets: [baseline, baseline_plus_litebird]
+  stokes_modes: [[I, Q, U], [Q, U]]
   use_physical_amplitude: false
   include_ratio_panel: true
   parameters:

@@ -284,3 +284,71 @@ def test_run_fisher_grid_from_yaml_merges_model_and_grid_gain_error_groups(tmp_p
     )
 
     assert captured["gain_error_groups"] == {"planck": 0.02, "wmap": 0.03}
+
+
+def test_grid_workflow_writes_mode_comparison_artifacts(tmp_path, monkeypatch):
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps({"jobs": [{"job_id": "j0000", "run_name": "j0000", "params": {"x": 1.0, "y": 2.0}}]})
+    )
+
+    sims_cfg = tmp_path / "sims.yaml"
+    sims_cfg.write_text("simulations:\n  components: []\n")
+
+    fitter_cfg = tmp_path / "fitter.yaml"
+    fitter_cfg.write_text("fitter:\n  out_dir: products/fits\n  components: []\n")
+
+    data_yaml = tmp_path / "data.yaml"
+    data_yaml.write_text("{}\n")
+    templates_yaml = tmp_path / "templates.yaml"
+    templates_yaml.write_text("{}\n")
+
+    monkeypatch.setattr(grid_workflow, "run_simulations", lambda *args, **kwargs: None)
+
+    def _fake_run_fisher(*, fitter_yaml, out_dir, run_name, region_ids, **kwargs):
+        _ = grid_workflow.load_yaml(fitter_yaml)
+        for set_name, sigma in (("baseline", 0.2), ("baseline_plus_litebird", 0.1)):
+            summary_path = (
+                out_dir / "grid_tag" / run_name / "fisher" / set_name / region_ids[0] / "summary.json"
+            )
+            summary_path.parent.mkdir(parents=True, exist_ok=True)
+            summary_path.write_text(json.dumps({"fiducial": {"A_md": 0.4}, "sigma_1d": {"A_md": sigma}}))
+
+    monkeypatch.setattr(grid_workflow, "run_fisher", _fake_run_fisher)
+    monkeypatch.setattr(grid_workflow, "save_grid_outputs", lambda **kwargs: tmp_path / "grid_maps")
+
+    out_dir = tmp_path / "products" / "fits" / "v001"
+    result = grid_workflow.run_fisher_grid_workflow(
+        grid_manifest=manifest_path,
+        sims_cfg=sims_cfg,
+        fitter_cfg=fitter_cfg,
+        data_yaml=data_yaml,
+        templates_yaml=templates_yaml,
+        regions_h5=tmp_path / "regions.h5",
+        processed_h5=tmp_path / "processed.h5",
+        out_dir=out_dir,
+        grid_tag="grid_tag",
+        x_param="x",
+        y_param="y",
+        region="highlat1",
+        dataset_sets=["baseline", "baseline_plus_litebird"],
+        stokes_modes=[["I", "Q", "U"], ["Q", "U"]],
+    )
+
+    assert result == out_dir / "grid_tag" / "fisher" / "grid_maps"
+    comparison_path = out_dir / "grid_tag" / "fisher" / "snr_mode_comparison.json"
+    assert comparison_path.exists()
+
+    payload = json.loads(comparison_path.read_text())
+    assert payload["region"] == "highlat1"
+    assert "IQU" in payload["modes"]
+    assert "QU" in payload["modes"]
+
+    iqu = payload["modes"]["IQU"]["j0000"]
+    assert iqu["snr_baseline"] == 2.0
+    assert iqu["snr_plus"] == 4.0
+    assert iqu["snr_abs_diff"] == 2.0
+    assert iqu["snr_ratio"] == 2.0
+
+    csv_path = out_dir / "grid_tag" / "fisher" / "grid_maps" / "snr_mode_comparison_table.csv"
+    assert csv_path.exists()
