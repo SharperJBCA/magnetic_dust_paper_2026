@@ -4,7 +4,11 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from mde_pipeline.fisher.grid_workflow import _build_jobs_from_grid_section, _filter_component_lists
+from mde_pipeline.fisher.grid_workflow import (
+    _build_jobs_from_grid_section,
+    _filter_component_lists,
+    _filter_fitter_components_for_stokes_mode,
+)
 from mde_pipeline.fisher import grid_workflow
 import numpy as np
 
@@ -61,6 +65,38 @@ def test_filter_component_lists_supports_thermaldust_alias_for_sim_components():
     )
 
     assert [c["name"] for c in sim_cfg["simulations"]["components"]] == ["dust"]
+
+
+def test_filter_fitter_components_for_qu_mode_drops_intensity_only_components():
+    fit_cfg = {
+        "fitter": {
+            "components": [
+                {"name": "synchrotron", "stokes": ["I", "Q", "U"]},
+                {"name": "freefree", "stokes": ["I"]},
+                {"name": "spinningdust", "stokes": ["I"]},
+                {"name": "dust", "stokes": ["Q", "U"]},
+            ]
+        }
+    }
+
+    _filter_fitter_components_for_stokes_mode(fit_cfg, ["Q", "U"])
+
+    assert [c["name"] for c in fit_cfg["fitter"]["components"]] == ["synchrotron", "dust"]
+
+
+def test_filter_fitter_components_for_stokes_mode_defaults_to_iqu_when_missing_stokes():
+    fit_cfg = {
+        "fitter": {
+            "components": [
+                {"name": "legacy_component"},
+                {"name": "freefree", "stokes": ["I"]},
+            ]
+        }
+    }
+
+    _filter_fitter_components_for_stokes_mode(fit_cfg, ["Q", "U"])
+
+    assert [c["name"] for c in fit_cfg["fitter"]["components"]] == ["legacy_component"]
 
 
 def test_grid_workflow_overrides_fitter_out_dir(tmp_path, monkeypatch):

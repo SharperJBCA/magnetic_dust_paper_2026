@@ -200,6 +200,29 @@ def _stokes_mode_tag(mode: List[str]) -> str:
     return "".join(mode)
 
 
+def _filter_fitter_components_for_stokes_mode(fit_cfg: Dict[str, Any], mode: List[str]) -> None:
+    wanted = {str(s).upper() for s in mode}
+    fitter = fit_cfg.setdefault("fitter", {})
+    components = fitter.get("components", [])
+
+    filtered_components = []
+    dropped_components = []
+    for comp in components:
+        comp_stokes = [str(s).upper() for s in comp.get("stokes", ["I", "Q", "U"])]
+        if any(s in wanted for s in comp_stokes):
+            filtered_components.append(comp)
+        else:
+            dropped_components.append(str(comp.get("name", "<unknown>")))
+
+    fitter["components"] = filtered_components
+    if dropped_components:
+        log.info(
+            "[grid] stokes %s dropping fitter components with no supported stokes output: %s",
+            "".join(mode),
+            ", ".join(dropped_components),
+        )
+
+
 def _sigmoid(x: np.ndarray) -> np.ndarray:
     import numpy as np
 
@@ -538,6 +561,7 @@ def run_fisher_grid_workflow(
             mode_tag = _stokes_mode_tag(mode)
             run_name = f"{base_run_name}_mode{mode_tag}"
             mode_fit_cfg_obj = copy.deepcopy(fit_cfg_obj)
+            _filter_fitter_components_for_stokes_mode(mode_fit_cfg_obj, mode)
             mode_fit_cfg_obj.setdefault("fitter", {})["stokes_fit"] = list(mode)
             mode_fit_cfg_obj.setdefault("fitter", {})["out_dir"] = str(out_dir)
             mode_fit_cfg_obj.setdefault("fitter", {})["sims_tag"] = grid_tag
