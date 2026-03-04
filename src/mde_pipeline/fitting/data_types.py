@@ -190,6 +190,8 @@ class Model:
                                     T=self.templates[spec.template_name], 
                                     params=comp_params)
                 for s in spec.stokes:
+                    if s not in self._sidx:
+                        continue
                     if s not in out:
                         continue
                     pred[i, self._sidx[s]*npix:(self._sidx[s]+1)*npix] += out[s]
