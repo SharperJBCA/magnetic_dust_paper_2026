@@ -254,6 +254,8 @@ def fisher_grid(
     regions_h5: Optional[Path] = typer.Option(None),
     processed_h5: Optional[Path] = typer.Option(None),
     out_dir: Optional[Path] = typer.Option(None),
+    reuse_simulation_h5: Optional[Path] = typer.Option(None, "--reuse-simulation-h5", help="Path to a shared simulations.h5 to reuse for all jobs."),
+    skip_simulations: bool = typer.Option(False, "--skip-simulations", help="Skip per-job simulation generation and only run Fisher."),
     use_physical_amplitude: bool = typer.Option(False, help="Compute SNR using A_phys=exp(A_md)."),
     include_ratio_panel: bool = typer.Option(True),
     overwrite: bool = typer.Option(False),
@@ -278,6 +280,8 @@ def fisher_grid(
             out_dir=out_dir,
             regions_h5=regions_h5,
             processed_h5=processed_h5,
+            reuse_simulation_h5=reuse_simulation_h5,
+            skip_simulations=skip_simulations,
             overwrite=overwrite,
             dry_run=dry_run,
         )
@@ -306,6 +310,8 @@ def fisher_grid(
         dataset_sets=dataset_set,
         use_physical_amplitude=use_physical_amplitude,
         include_ratio_panel=include_ratio_panel,
+        reuse_simulation_h5=reuse_simulation_h5,
+        skip_simulations=skip_simulations,
         overwrite=overwrite,
         dry_run=dry_run,
     )
@@ -319,6 +325,8 @@ def fisher_grid_config(
     out_dir: Optional[Path] = typer.Option(None),
     regions_h5: Optional[Path] = typer.Option(None),
     processed_h5: Optional[Path] = typer.Option(None),
+    reuse_simulation_h5: Optional[Path] = typer.Option(None, "--reuse-simulation-h5", help="Path to a shared simulations.h5 to reuse for all jobs."),
+    skip_simulations: bool = typer.Option(False, "--skip-simulations", help="Skip per-job simulation generation and only run Fisher."),
     overwrite: bool = typer.Option(False),
     dry_run: bool = typer.Option(False),
 ) -> None:
@@ -328,6 +336,8 @@ def fisher_grid_config(
         out_dir=out_dir,
         regions_h5=regions_h5,
         processed_h5=processed_h5,
+        reuse_simulation_h5=reuse_simulation_h5,
+        skip_simulations=skip_simulations,
         overwrite=overwrite,
         dry_run=dry_run,
     )

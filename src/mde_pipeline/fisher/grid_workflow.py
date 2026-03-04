@@ -242,6 +242,8 @@ def run_fisher_grid_from_yaml(
     out_dir: Optional[Path] = None,
     regions_h5: Optional[Path] = None,
     processed_h5: Optional[Path] = None,
+    reuse_simulation_h5: Optional[Path] = None,
+    skip_simulations: bool = False,
     overwrite: bool = False,
     dry_run: bool = False,
 ) -> Path:
@@ -279,8 +281,8 @@ def run_fisher_grid_from_yaml(
         model_cfg=dict(cfg.get("model", {})),
         gain_error_groups=gain_error_groups,
         grid_parameters=list(grid.get("parameters", [])),
-        reuse_simulation_h5=workflow.get("reuse_simulation_h5"),
-        skip_simulations=bool(workflow.get("skip_simulations", False)),
+        reuse_simulation_h5=reuse_simulation_h5 or workflow.get("reuse_simulation_h5"),
+        skip_simulations=skip_simulations or bool(workflow.get("skip_simulations", False)),
         overwrite=overwrite,
         dry_run=dry_run,
     )
@@ -329,98 +331,71 @@ def run_fisher_grid_workflow(
     tmp_cfg_dir = runs_root / "_grid_tmp_configs"
     tmp_cfg_dir.mkdir(parents=True, exist_ok=True)
 
-    resolved_manifest_jobs_by_mode: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    resolved_manifest_jobs: Dict[str, Dict[str, Any]] = {}
 
-    for mode in stokes_modes:
-        mode_tag = _stokes_mode_tag(mode)
-        resolved_manifest_jobs: Dict[str, Dict[str, Any]] = {}
+    for idx, job in enumerate(jobs):
+        job_id = str(job.get("job_id", f"j{idx:04d}"))
+        run_name = str(job.get("run_name", job_id))
+        sim_overrides = dict(job.get("sim_overrides", {}))
+        fitter_overrides = dict(job.get("fitter_overrides", {}))
+        params = {str(k): float(v) for k, v in dict(job.get("params", {})).items()}
 
-        for idx, job in enumerate(jobs):
-            job_id = str(job.get("job_id", f"j{idx:04d}"))
-            run_name = str(job.get("run_name", job_id))
-            mode_run_name = f"{run_name}__stokes_{mode_tag}"
-            sim_overrides = dict(job.get("sim_overrides", {}))
-            fitter_overrides = dict(job.get("fitter_overrides", {}))
-            params = {str(k): float(v) for k, v in dict(job.get("params", {})).items()}
+        sim_cfg_obj = _deep_update(base_sim_cfg, sim_overrides)
+        fit_cfg_obj = _deep_update(base_fit_cfg, fitter_overrides)
 
-            sim_cfg_obj = _deep_update(base_sim_cfg, sim_overrides)
-            fit_cfg_obj = _deep_update(base_fit_cfg, fitter_overrides)
+        _filter_component_lists(
+            sim_cfg_obj,
+            fit_cfg_obj,
+            keep_sim_components=[str(x) for x in model_cfg.get("simulation_components", [])],
+            keep_fitter_components=[str(x) for x in model_cfg.get("fitter_components", [])],
+        )
 
-            _apply_gain_error_group_overrides(fit_cfg_obj, gain_error_groups)
+        for comp_name, cmap in dict(model_cfg.get("fixed_simulation_params", {})).items():
+            for p, v in dict(cmap).items():
+                _set_sim_component_param(sim_cfg_obj, str(comp_name), str(p), float(v))
+        for p, v in dict(model_cfg.get("fixed_fitter_params", {})).items():
+            _set_fitter_param(fit_cfg_obj, str(p), float(v))
 
-            _filter_component_lists(
-                sim_cfg_obj,
-                fit_cfg_obj,
-                keep_sim_components=[str(x) for x in model_cfg.get("simulation_components", [])],
-                keep_fitter_components=[str(x) for x in model_cfg.get("fitter_components", [])],
-            )
+        for p_name, p_val in params.items():
+            pmeta = parameter_lookup.get(p_name, {})
+            sim_comp = pmeta.get("sim_component")
+            sim_param = pmeta.get("sim_param")
+            fit_param = pmeta.get("fitter_param")
+            if sim_comp and sim_param:
+                _set_sim_component_param(sim_cfg_obj, str(sim_comp), str(sim_param), float(p_val))
+            if fit_param:
+                _set_fitter_param(fit_cfg_obj, str(fit_param), float(p_val))
 
-            for comp_name, cmap in dict(model_cfg.get("fixed_simulation_params", {})).items():
-                for p, v in dict(cmap).items():
-                    _set_sim_component_param(sim_cfg_obj, str(comp_name), str(p), float(v))
-            for p, v in dict(model_cfg.get("fixed_fitter_params", {})).items():
-                _set_fitter_param(fit_cfg_obj, str(p), float(v))
+        sim_out_h5 = shared_sims_h5 or (runs_root / run_name / "products" / "simulations" / "simulations.h5")
+        if should_run_simulations:
+            sim_out_h5.parent.mkdir(parents=True, exist_ok=True)
 
-            for p_name, p_val in params.items():
-                pmeta = parameter_lookup.get(p_name, {})
-                sim_comp = pmeta.get("sim_component")
-                sim_param = pmeta.get("sim_param")
-                fit_param = pmeta.get("fitter_param")
-                if sim_comp and sim_param:
-                    _set_sim_component_param(sim_cfg_obj, str(sim_comp), str(sim_param), float(p_val))
-                if fit_param:
-                    _set_fitter_param(fit_cfg_obj, str(fit_param), float(p_val))
+        sim_cfg_obj.setdefault("simulations", {})["out_h5"] = str(sim_out_h5)
+        fit_cfg_obj.setdefault("fitter", {})["sims_h5"] = str(sim_out_h5)
+        fit_cfg_obj.setdefault("fitter", {})["out_dir"] = str(out_dir)
+        fit_cfg_obj.setdefault("fitter", {})["sims_tag"] = grid_tag
 
-            sim_out_h5 = shared_sims_h5 or (runs_root / run_name / "products" / "simulations" / "simulations.h5")
-            if should_run_simulations:
-                sim_out_h5.parent.mkdir(parents=True, exist_ok=True)
+        sim_cfg_path = tmp_cfg_dir / f"{job_id}_sim.yaml"
+        fit_cfg_path = tmp_cfg_dir / f"{job_id}_fit.yaml"
+        sim_cfg_path.write_text(yaml.safe_dump(sim_cfg_obj, sort_keys=False))
+        fit_cfg_path.write_text(yaml.safe_dump(fit_cfg_obj, sort_keys=False))
 
-            sim_cfg_obj.setdefault("simulations", {})["out_h5"] = str(sim_out_h5)
-            fit_cfg_obj.setdefault("fitter", {})["sims_h5"] = str(sim_out_h5)
-            fit_cfg_obj.setdefault("fitter", {})["out_dir"] = str(out_dir)
-            fit_cfg_obj.setdefault("fitter", {})["sims_tag"] = grid_tag
-            fit_cfg_obj.setdefault("fitter", {})["stokes_fit"] = list(mode)
+        if should_run_simulations:
+            log.info("[grid] running simulation for %s", job_id)
+            run_simulations(sim_cfg_path, overwrite=overwrite, dry_run=dry_run)
 
-            sim_cfg_path = tmp_cfg_dir / f"{job_id}_{mode_tag}_sim.yaml"
-            fit_cfg_path = tmp_cfg_dir / f"{job_id}_{mode_tag}_fit.yaml"
-            sim_cfg_path.write_text(yaml.safe_dump(sim_cfg_obj, sort_keys=False))
-            fit_cfg_path.write_text(yaml.safe_dump(fit_cfg_obj, sort_keys=False))
-
-            if should_run_simulations:
-                log.info("[grid] running simulation for %s (%s)", job_id, mode_tag)
-                run_simulations(sim_cfg_path, overwrite=overwrite, dry_run=dry_run)
-
-            log.info("[grid] running fisher for %s (%s)", job_id, mode_tag)
-            run_fisher(
-                fitter_yaml=fit_cfg_path,
-                data_yaml=data_yaml,
-                templates_yaml=templates_yaml,
-                regions_h5=regions_h5,
-                processed_h5=processed_h5,
-                out_dir=out_dir,
-                run_name=mode_run_name,
-                region_ids=[region],
-                overwrite=overwrite,
-                dry_run=dry_run,
-            )
-
-            resolved_manifest_jobs[job_id] = {"run_name": mode_run_name, "params": params}
-
-        resolved_manifest_jobs_by_mode[mode_tag] = resolved_manifest_jobs
-
-        resolved_manifest_path = runs_root / f"grid_manifest_resolved_{mode_tag}.json"
-        resolved_manifest_path.write_text(json.dumps({"jobs": resolved_manifest_jobs}, indent=2))
-
-        save_grid_outputs(
-            runs_root=runs_root,
-            x_param=x_param,
-            y_param=y_param,
-            region=region,
-            dataset_sets=dataset_sets,
-            manifest_path=resolved_manifest_path,
-            use_physical_amplitude=use_physical_amplitude,
-            include_ratio_panel=include_ratio_panel,
-            name_suffix=f"stokes_{mode_tag}",
+        log.info("[grid] running fisher for %s", job_id)
+        run_fisher(
+            fitter_yaml=fit_cfg_path,
+            data_yaml=data_yaml,
+            templates_yaml=templates_yaml,
+            regions_h5=regions_h5,
+            processed_h5=processed_h5,
+            out_dir=out_dir,
+            run_name=run_name,
+            region_ids=[region],
+            overwrite=overwrite,
+            dry_run=dry_run,
         )
 
     comparison = _build_snr_mode_comparison(
