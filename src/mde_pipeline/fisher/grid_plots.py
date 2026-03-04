@@ -168,6 +168,7 @@ def save_grid_outputs(
     manifest_path: Optional[Path] = None,
     use_physical_amplitude: bool = False,
     include_ratio_panel: bool = True,
+    name_suffix: Optional[str] = None,
 ) -> Path:
     table = build_snr_grid_table(
         runs_root=runs_root,
@@ -182,6 +183,8 @@ def save_grid_outputs(
     out_dir = runs_root / "fisher" / "grid_maps"
     out_dir.mkdir(parents=True, exist_ok=True)
     tag = f"{region}_{x_param}_vs_{y_param}"
+    if name_suffix:
+        tag = f"{tag}_{name_suffix}"
 
     csv_path = out_dir / f"snr_grid_table_{tag}.csv"
     with csv_path.open("w", newline="") as f:
