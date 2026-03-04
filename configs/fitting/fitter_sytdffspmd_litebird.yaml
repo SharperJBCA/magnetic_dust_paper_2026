@@ -3,6 +3,11 @@ fitter:
   processed_h5: "products/simulations/v002_sytdffspmd/simulations.h5"
   sims_tag: "v002_sytdffspmd"
   out_dir: "products/fits"
+  fisher_inversion:
+    scaling: "diag"
+    ridge: 1.0e-10
+    diag_floor: 1.0e-12
+    fiducial_floor: 1.0e-6
   
   dataset_sets:
     baseline:
