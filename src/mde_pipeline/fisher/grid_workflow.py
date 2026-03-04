@@ -325,11 +325,13 @@ def run_fisher_grid_workflow(
     tmp_cfg_dir = runs_root / "_grid_tmp_configs"
     tmp_cfg_dir.mkdir(parents=True, exist_ok=True)
 
-    resolved_manifest_jobs: Dict[str, Dict[str, Any]] = {}
+    resolved_manifest_jobs_by_mode: Dict[str, Dict[str, Dict[str, Any]]] = {
+        _stokes_mode_tag(mode): {} for mode in stokes_modes
+    }
 
     for idx, job in enumerate(jobs):
         job_id = str(job.get("job_id", f"j{idx:04d}"))
-        run_name = str(job.get("run_name", job_id))
+        base_run_name = str(job.get("run_name", job_id))
         sim_overrides = dict(job.get("sim_overrides", {}))
         fitter_overrides = dict(job.get("fitter_overrides", {}))
         params = {str(k): float(v) for k, v in dict(job.get("params", {})).items()}
@@ -360,62 +362,70 @@ def run_fisher_grid_workflow(
             if fit_param:
                 _set_fitter_param(fit_cfg_obj, str(fit_param), float(p_val))
 
-        sim_out_h5 = shared_sims_h5 or (runs_root / run_name / "products" / "simulations" / "simulations.h5")
+        sim_out_h5 = shared_sims_h5 or (runs_root / base_run_name / "products" / "simulations" / "simulations.h5")
         if should_run_simulations:
             sim_out_h5.parent.mkdir(parents=True, exist_ok=True)
 
         sim_cfg_obj.setdefault("simulations", {})["out_h5"] = str(sim_out_h5)
         fit_cfg_obj.setdefault("fitter", {})["sims_h5"] = str(sim_out_h5)
-        fit_cfg_obj.setdefault("fitter", {})["out_dir"] = str(out_dir)
-        fit_cfg_obj.setdefault("fitter", {})["sims_tag"] = grid_tag
 
         sim_cfg_path = tmp_cfg_dir / f"{job_id}_sim.yaml"
-        fit_cfg_path = tmp_cfg_dir / f"{job_id}_fit.yaml"
         sim_cfg_path.write_text(yaml.safe_dump(sim_cfg_obj, sort_keys=False))
-        fit_cfg_path.write_text(yaml.safe_dump(fit_cfg_obj, sort_keys=False))
 
         if should_run_simulations:
             log.info("[grid] running simulation for %s", job_id)
             run_simulations(sim_cfg_path, overwrite=overwrite, dry_run=dry_run)
 
-        log.info("[grid] running fisher for %s", job_id)
-        run_fisher(
-            fitter_yaml=fit_cfg_path,
-            data_yaml=data_yaml,
-            templates_yaml=templates_yaml,
-            regions_h5=regions_h5,
-            processed_h5=processed_h5,
-            out_dir=out_dir,
-            run_name=run_name,
-            region_ids=[region],
-            overwrite=overwrite,
-            dry_run=dry_run,
+        for mode in stokes_modes:
+            mode_tag = _stokes_mode_tag(mode)
+            run_name = f"{base_run_name}_mode{mode_tag}"
+            mode_fit_cfg_obj = copy.deepcopy(fit_cfg_obj)
+            mode_fit_cfg_obj.setdefault("fitter", {})["stokes_fit"] = list(mode)
+            mode_fit_cfg_obj.setdefault("fitter", {})["out_dir"] = str(out_dir)
+            mode_fit_cfg_obj.setdefault("fitter", {})["sims_tag"] = grid_tag
+
+            fit_cfg_path = tmp_cfg_dir / f"{job_id}_fit_mode{mode_tag}.yaml"
+            fit_cfg_path.write_text(yaml.safe_dump(mode_fit_cfg_obj, sort_keys=False))
+
+            log.info("[grid] running fisher for %s (%s)", job_id, mode_tag)
+            run_fisher(
+                fitter_yaml=fit_cfg_path,
+                data_yaml=data_yaml,
+                templates_yaml=templates_yaml,
+                regions_h5=regions_h5,
+                processed_h5=processed_h5,
+                out_dir=out_dir,
+                run_name=run_name,
+                region_ids=[region],
+                overwrite=overwrite,
+                dry_run=dry_run,
+            )
+
+            resolved_manifest_jobs_by_mode[mode_tag][job_id] = {
+                "run_name": run_name,
+                "params": params,
+                "stokes_mode": list(mode),
+                "stokes_mode_tag": mode_tag,
+            }
+
+    fisher_dir = runs_root / "fisher"
+    fisher_dir.mkdir(parents=True, exist_ok=True)
+    for mode in stokes_modes:
+        mode_tag = _stokes_mode_tag(mode)
+        manifest_for_plots = fisher_dir / f"grid_manifest_resolved_mode{mode_tag}.json"
+        manifest_for_plots.write_text(json.dumps({"mode_tag": mode_tag, "jobs": resolved_manifest_jobs_by_mode[mode_tag]}, indent=2))
+
+        save_grid_outputs(
+            runs_root=runs_root,
+            x_param=x_param,
+            y_param=y_param,
+            region=region,
+            dataset_sets=dataset_sets,
+            manifest_path=manifest_for_plots,
+            use_physical_amplitude=use_physical_amplitude,
+            include_ratio_panel=include_ratio_panel,
+            name_suffix=f"mode{mode_tag}",
         )
-
-        resolved_manifest_jobs[job_id] = {
-            "run_name": run_name,
-            "params": params,
-        }
-
-    resolved_manifest_jobs_by_mode = {
-        _stokes_mode_tag(mode): dict(resolved_manifest_jobs)
-        for mode in stokes_modes
-    }
-
-    manifest_for_plots = runs_root / "fisher" / "grid_manifest_resolved.json"
-    manifest_for_plots.parent.mkdir(parents=True, exist_ok=True)
-    manifest_for_plots.write_text(json.dumps({"jobs": resolved_manifest_jobs}, indent=2))
-
-    save_grid_outputs(
-        runs_root=runs_root,
-        x_param=x_param,
-        y_param=y_param,
-        region=region,
-        dataset_sets=dataset_sets,
-        manifest_path=manifest_for_plots,
-        use_physical_amplitude=use_physical_amplitude,
-        include_ratio_panel=include_ratio_panel,
-    )
 
     comparison = _build_snr_mode_comparison(
         runs_root=runs_root,
@@ -424,8 +434,6 @@ def run_fisher_grid_workflow(
         use_physical_amplitude=use_physical_amplitude,
     )
 
-    fisher_dir = runs_root / "fisher"
-    fisher_dir.mkdir(parents=True, exist_ok=True)
     (fisher_dir / "snr_mode_comparison.json").write_text(json.dumps(comparison, indent=2))
 
     grid_maps_dir = fisher_dir / "grid_maps"
