@@ -270,17 +270,9 @@ def run_fisher_grid_from_yaml(
         regions_h5=Path(regions_h5 or workflow.get("regions_h5", f"products/regions/{tag}/regions.h5")),
         processed_h5=Path(processed_h5 or workflow.get("processed_h5", f"products/processed_maps/{tag}/processed_maps.h5")),
         out_dir=Path(out_dir or workflow.get("out_dir", f"products/fits/{tag}")),
-        grid_tag=str(grid["grid_tag"]),
-        x_param=str(grid["x_param"]),
-        y_param=str(grid["y_param"]),
-        region=str(grid["region"]),
-        dataset_sets=[str(x) for x in grid.get("dataset_sets", ["baseline", "baseline_plus_litebird"])],
-        use_physical_amplitude=bool(grid.get("use_physical_amplitude", False)),
-        include_ratio_panel=bool(grid.get("include_ratio_panel", True)),
-        stokes_modes=_normalize_stokes_modes(grid.get("stokes_modes")),
+        grid_cfg=grid,
         model_cfg=dict(cfg.get("model", {})),
         gain_error_groups=gain_error_groups,
-        grid_parameters=list(grid.get("parameters", [])),
         reuse_simulation_h5=reuse_simulation_h5 or workflow.get("reuse_simulation_h5"),
         skip_simulations=skip_simulations or bool(workflow.get("skip_simulations", False)),
         overwrite=overwrite,
@@ -297,17 +289,9 @@ def run_fisher_grid_workflow(
     regions_h5: Path,
     processed_h5: Path,
     out_dir: Path,
-    grid_tag: str,
-    x_param: str,
-    y_param: str,
-    region: str,
-    dataset_sets: List[str],
-    use_physical_amplitude: bool = False,
-    include_ratio_panel: bool = True,
-    stokes_modes: Optional[List[List[str]]] = None,
+    grid_cfg: Dict[str, Any],
     model_cfg: Optional[Dict[str, Any]] = None,
     gain_error_groups: Optional[Dict[str, Any]] = None,
-    grid_parameters: Optional[List[Dict[str, Any]]] = None,
     reuse_simulation_h5: Optional[Path] = None,
     skip_simulations: bool = False,
     overwrite: bool = False,
@@ -321,10 +305,20 @@ def run_fisher_grid_workflow(
     base_sim_cfg = load_yaml(sims_cfg)
     base_fit_cfg = load_yaml(fitter_cfg)
     model_cfg = model_cfg or {}
+    grid_cfg = dict(grid_cfg)
+    grid_tag = str(grid_cfg["grid_tag"])
+    x_param = str(grid_cfg["x_param"])
+    y_param = str(grid_cfg["y_param"])
+    region = str(grid_cfg["region"])
+    dataset_sets = [str(x) for x in grid_cfg.get("dataset_sets", ["baseline", "baseline_plus_litebird"])]
+    use_physical_amplitude = bool(grid_cfg.get("use_physical_amplitude", False))
+    include_ratio_panel = bool(grid_cfg.get("include_ratio_panel", True))
+    stokes_modes = _normalize_stokes_modes(grid_cfg.get("stokes_modes"))
+    grid_parameters = list(grid_cfg.get("parameters", []))
+
     shared_sims_h5 = Path(reuse_simulation_h5) if reuse_simulation_h5 is not None else None
     should_run_simulations = not skip_simulations and shared_sims_h5 is None
-    parameter_lookup = {str(p.get("name")): p for p in (grid_parameters or [])}
-    stokes_modes = _normalize_stokes_modes(stokes_modes)
+    parameter_lookup = {str(p.get("name")): p for p in grid_parameters}
 
     runs_root = Path(out_dir) / grid_tag
     runs_root.mkdir(parents=True, exist_ok=True)
@@ -397,6 +391,31 @@ def run_fisher_grid_workflow(
             overwrite=overwrite,
             dry_run=dry_run,
         )
+
+        resolved_manifest_jobs[job_id] = {
+            "run_name": run_name,
+            "params": params,
+        }
+
+    resolved_manifest_jobs_by_mode = {
+        _stokes_mode_tag(mode): dict(resolved_manifest_jobs)
+        for mode in stokes_modes
+    }
+
+    manifest_for_plots = runs_root / "fisher" / "grid_manifest_resolved.json"
+    manifest_for_plots.parent.mkdir(parents=True, exist_ok=True)
+    manifest_for_plots.write_text(json.dumps({"jobs": resolved_manifest_jobs}, indent=2))
+
+    save_grid_outputs(
+        runs_root=runs_root,
+        x_param=x_param,
+        y_param=y_param,
+        region=region,
+        dataset_sets=dataset_sets,
+        manifest_path=manifest_for_plots,
+        use_physical_amplitude=use_physical_amplitude,
+        include_ratio_panel=include_ratio_panel,
+    )
 
     comparison = _build_snr_mode_comparison(
         runs_root=runs_root,
