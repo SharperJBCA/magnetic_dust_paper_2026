@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from mde_pipeline.fisher.grid_workflow import _build_jobs_from_grid_section, _filter_component_lists
 from mde_pipeline.fisher import grid_workflow
+import numpy as np
 
 
 def test_build_jobs_from_grid_section_cartesian_product():
@@ -212,3 +213,65 @@ def test_run_fisher_grid_from_yaml_forwards_reuse_flags(tmp_path, monkeypatch):
     assert captured["reuse"] == cli_reuse
     assert captured["skip"] is True
     assert captured["grid_cfg"]["x_param"] == "x"
+
+
+def test_make_fisher_overlay_corner_plot_with_transforms(tmp_path, monkeypatch):
+    runs_root = tmp_path / "runs"
+    region = "highlat1"
+
+    run_a = runs_root / "j0000_modeIQU" / "fisher" / "baseline" / region
+    run_b = runs_root / "j0000_modeQU" / "fisher" / "baseline_plus_litebird" / region
+    run_a.mkdir(parents=True)
+    run_b.mkdir(parents=True)
+
+    param_names = np.array(["A_md", "phi", "chi0", "cal_planck100"], dtype="U")
+    fid = np.array([0.0, 0.0, 0.0, 1.0], dtype=float)
+    cov = np.diag([0.1, 0.1, 0.1, 0.1])
+
+    np.savez_compressed(run_a / "fisher_products.npz", param_names=param_names, fiducial=fid, covariance=cov)
+    np.savez_compressed(run_b / "fisher_products.npz", param_names=param_names, fiducial=fid, covariance=cov)
+
+    captured = {}
+
+    class _FakeMCSamples:
+        def __init__(self, samples, names, labels, label):
+            captured.setdefault("labels", []).append(labels)
+            captured.setdefault("names", []).append(names)
+
+    class _FakeFig:
+        def savefig(self, path, dpi=180, bbox_inches="tight"):
+            Path(path).write_text("ok")
+
+    class _FakePlotter:
+        def __init__(self):
+            self.fig = _FakeFig()
+
+        def triangle_plot(self, *args, **kwargs):
+            captured["markers"] = kwargs.get("markers", {})
+
+    monkeypatch.setattr(grid_workflow, "MCSamples", _FakeMCSamples)
+    monkeypatch.setattr(
+        grid_workflow,
+        "getdist_plots",
+        type("_FakePlots", (), {"get_subplot_plotter": staticmethod(lambda: _FakePlotter())})(),
+    )
+    monkeypatch.setattr(grid_workflow, "plt", type("_FakePlt", (), {"close": staticmethod(lambda *args, **kwargs: None)})())
+
+    out = tmp_path / "overlay.png"
+    result = grid_workflow.make_fisher_overlay_corner_plot(
+        runs_root=runs_root,
+        run_name_a="j0000_modeIQU",
+        dataset_set_a="baseline",
+        run_name_b="j0000_modeQU",
+        dataset_set_b="baseline_plus_litebird",
+        region=region,
+        output_png=out,
+        params=["A_md", "phi", "chi0"],
+        pretty_labels=["A", "phi", "chi"],
+    )
+
+    assert result == out
+    assert out.exists()
+    assert captured["labels"][0] == ["A", "phi", "chi"]
+    assert set(captured["markers"].keys()) == {"A_md", "phi", "chi0"}
+    assert 0.0 < captured["markers"]["phi"] < 1.0
