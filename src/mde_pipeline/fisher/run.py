@@ -36,6 +36,83 @@ def _collect_dataset_sets(fitter_info: Dict[str, Any]) -> Dict[str, List[str]]:
     return {"default": list(targets)}
 
 
+def _fisher_inversion_config(fitter_info: Dict[str, Any]) -> Dict[str, Any]:
+    cfg = dict(fitter_info.get("fisher_inversion", {}))
+    return {
+        "scaling": str(cfg.get("scaling", "diag")).strip().lower(),
+        "diag_floor": float(cfg.get("diag_floor", 1e-12)),
+        "fiducial_floor": float(cfg.get("fiducial_floor", 1e-6)),
+        "ridge": float(cfg.get("ridge", 0.0)),
+    }
+
+
+def _fisher_scale_vector(
+    F: np.ndarray,
+    param_names: List[str],
+    params0: Dict[str, float],
+    *,
+    method: str,
+    diag_floor: float,
+    fiducial_floor: float,
+) -> np.ndarray:
+    if method in {"none", "identity"}:
+        return np.ones(F.shape[0], dtype=float)
+
+    if method in {"diag", "fisher_diag"}:
+        diag = np.clip(np.diag(F), diag_floor, np.inf)
+        return 1.0 / np.sqrt(diag)
+
+    if method in {"fiducial", "param"}:
+        scales = []
+        for name in param_names:
+            scales.append(max(abs(float(params0[name])), fiducial_floor))
+        return np.asarray(scales, dtype=float)
+
+    raise ValueError(f"Unsupported fisher inversion scaling '{method}'")
+
+
+def _invert_fisher_stably(
+    F: np.ndarray,
+    param_names: List[str],
+    params0: Dict[str, float],
+    inversion_cfg: Dict[str, Any],
+) -> Tuple[np.ndarray, Dict[str, float]]:
+    scaling = str(inversion_cfg.get("scaling", "diag")).lower()
+    diag_floor = float(inversion_cfg.get("diag_floor", 1e-12))
+    fiducial_floor = float(inversion_cfg.get("fiducial_floor", 1e-6))
+    ridge = float(inversion_cfg.get("ridge", 0.0))
+
+    scale = _fisher_scale_vector(
+        F,
+        param_names,
+        params0,
+        method=scaling,
+        diag_floor=diag_floor,
+        fiducial_floor=fiducial_floor,
+    )
+    S = np.diag(scale)
+    F_scaled = S @ F @ S
+    if ridge > 0:
+        F_scaled = F_scaled + ridge * np.eye(F_scaled.shape[0], dtype=float)
+
+    cov_scaled = np.linalg.pinv(F_scaled)
+    cov = S @ cov_scaled @ S
+
+    with np.errstate(invalid="ignore", divide="ignore"):
+        cond_raw = float(np.linalg.cond(F))
+        cond_scaled = float(np.linalg.cond(F_scaled))
+
+    diagnostics = {
+        "conditioning_raw": cond_raw,
+        "conditioning_scaled": cond_scaled,
+        "scaling": scaling,
+        "diag_floor": diag_floor,
+        "fiducial_floor": fiducial_floor,
+        "ridge": ridge,
+    }
+    return cov, diagnostics
+
+
 def _magnetic_dust_params(param_names: List[str]) -> List[str]:
     wanted = {"a_md", "chi0", "phi", "phi_md", "omega0_thz"}
     out: List[str] = []
@@ -357,6 +434,7 @@ def run_fisher(
         return
 
     comparisons: Dict[str, Dict[str, Any]] = {}
+    inversion_cfg = _fisher_inversion_config(fitter_info)
 
     for set_name, targets in dataset_sets.items():
         local_fitter = dict(fitter_info)
@@ -407,7 +485,12 @@ def run_fisher(
                 rel_step=1e-6,
                 method="central",
             )
-            cov = np.linalg.pinv(F)
+            cov, inversion_diag = _invert_fisher_stably(
+                F=F,
+                param_names=param_names,
+                params0=param0,
+                inversion_cfg=inversion_cfg,
+            )
             sigma = np.sqrt(np.clip(np.diag(cov), 0, np.inf))
             sigma_map = {p: float(s) for p, s in zip(param_names, sigma)}
             snr_map = _snr_summary(param0, sigma_map, md_params)
@@ -446,6 +529,7 @@ def run_fisher(
                 "covariance": cov.tolist(),
                 "magnetic_dust_params": md_params,
                 "magnetic_dust_snr": snr_map,
+                "fisher_inversion": inversion_diag,
             }
             with open(reg_out / "summary.json", "w") as f:
                 json.dump(summary, f, indent=2)
@@ -454,6 +538,7 @@ def run_fisher(
                 "sigma_1d": sigma_map,
                 "covariance": cov.tolist(),
                 "magnetic_dust_snr": snr_map,
+                "fisher_inversion": inversion_diag,
             }
 
     side_by_side = {
